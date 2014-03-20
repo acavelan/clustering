@@ -46,7 +46,7 @@
 
 #include "opencv2/opencv_modules.hpp"
 
-#include "opencv2/nonfree/nonfree.hpp"
+#include "nonfree.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/core/internal.hpp"
 
