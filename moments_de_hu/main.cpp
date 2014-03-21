@@ -51,9 +51,14 @@ vector<vector<Point2d>> pca2DList(vector<vector<array<double, descriptorSize>>> 
     vector<Point2d> globalPoints = pca2D<descriptorSize>(globalDescriptorList);
 
     vector<vector<Point2d>> result;
+    result.reserve(descriptorGroupList.size());
 
-    for(int i=0, j=0 ; i<descriptorGroupList.size() ; i++, j+=descriptorGroupList[i].size())
-        result.push_back(vector<Point2d>(globalPoints.begin()+j, globalPoints.begin()+j+descriptorGroupList[i].size()));
+    int offset = 0;
+    for(int i=0 ; i<descriptorGroupList.size() ; i++)
+    {
+        result.push_back(vector<Point2d>(globalPoints.begin()+offset, globalPoints.begin()+offset+descriptorGroupList[i].size()));
+        offset += descriptorGroupList[i].size();
+    }
 
     return result;
 }
@@ -125,7 +130,7 @@ Scalar randomColor(RNG& randomGen)
 int main(int argc, char** argv)
 {
     // Initialisations pour l'affichage
-    Mat drawing = Mat::zeros(600, 800, CV_8UC3);
+    Mat drawing = Mat::zeros(768, 1024, CV_8UC3);
     RNG randomGen(time(NULL));
     vector<vector<array<double, 7>>> huList;
 
