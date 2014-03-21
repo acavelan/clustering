@@ -15,3 +15,6 @@ run-good: all Makefile
 run-bad: all Makefile
 	./$(TARGET) ../data/img1.jpg ../data/img12.jpg
 
+clean:
+	$(RM) $(TARGET) *.o
+
