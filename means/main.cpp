@@ -1,10 +1,12 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
 #include <array>
+#include <ctime>
 
 #include "../utils/utils.hpp"
 
@@ -50,6 +52,24 @@ void showDescriptors(const vector<string> &names, const vector<float> &descripto
     	cout << names[i] << ":\t" << descriptors[i] << endl;
 }
 
+float computeResult(const vector<string> &names, const vector<float> &descriptors, const Mat &centers)
+{
+	int good = 0;
+	int total = names.size();
+    for(int i=0; i<total; i++)
+    {
+    	string name = names[i];
+        float desc = descriptors[i];
+
+        int cls = matchClass(desc, centers);
+
+    	if(checkClass(name, cls))
+    		good++;
+    }
+
+    return ((float)good/total) * 100;
+}
+
 int main(int argc, char** argv)
 {
 	if(argc < 2)
@@ -57,6 +77,8 @@ int main(int argc, char** argv)
 		printf("usage: %s img1 img2 ...\n", argv[0]);
 		return 0;
 	}
+
+	srand(time(0));
 
 	// CHARGEMENT DES DONNEE
 	// ======================
@@ -78,62 +100,70 @@ int main(int argc, char** argv)
     createDescriptors(files, descriptors);
 
     // Affichage des descripteurs
-    showDescriptors(names, descriptors);
+    //showDescriptors(names, descriptors);
 
     // CREATION DE LA BASE DE DONNEE PAR APPRENTISSAGE
     //=================================================
 
-    // Création de la matrice d'entré pour K-Means (un descripteur par ligne)
-    Mat samples(descriptors.size(), 1, DataType<float>::type);
-    for(unsigned int i=0 ; i<descriptors.size() ; i++)
-        samples.at<float>(i, 0) = descriptors[i];
+    float best = 0;
+    int baseSize = 8;
+    int maxIter = 1000;
+    Mat bestLabels, bestCenters;
+    vector<vector<float>> bestClusters;
 
-    int K = 5;				// Nombre de clusters
-    int attempts = 100;		// Nombre d'essais
-    Mat labels, centers;	// Sorties
-
-    // Critère d'arrêt fixé à 100 itération max avec une précision de 1.0
-    TermCriteria termCriteria(CV_TERMCRIT_EPS|CV_TERMCRIT_ITER, 100, 1.0);
-
-    printf("Running kmeans ...\n");
-    kmeans(samples, K, labels, termCriteria, attempts, KMEANS_RANDOM_CENTERS, centers);
-
-    vector<vector<float>> clusters(K);
-    for(int i=0; i<labels.rows; i++)
+    for(int it=0; it<maxIter; it++)
     {
-        float m = samples.at<float>(labels.at<int>(i, 0), 0);
-        clusters[labels.at<int>(i, 0)].push_back(m);
-    }
+    	// Take 10 random images
+    	vector<int> ids;
+    	for(int i=0; i<baseSize; i++)
+    		ids.push_back(rand()%total);
 
-    for(unsigned int i=0; i<clusters.size(); i++)
-        printf("Cluster[%d].size = %zu\n", i, clusters[i].size());
+	    // Création de la matrice d'entré pour K-Means (un descripteur par ligne)
+	    Mat samples(baseSize, 1, DataType<float>::type);
+	    for(int i=0 ; i<baseSize ; i++)
+	        samples.at<float>(i, 0) = descriptors[ids[i]];
 
-    for(int i=0; i<centers.rows; i++)
-    	printf("Center[%d] = %f\n", i, centers.at<float>(i, 0));
+	    int K = 5;				// Nombre de clusters
+	    int attempts = 100;		// Nombre d'essais
+	    Mat labels, centers;	// Sorties
 
-    // VERIFICATION DES RESULTATS
-    //============================
+	    // Critère d'arrêt fixé à 100 itération max avec une précision de 1.0
+	    TermCriteria termCriteria(CV_TERMCRIT_EPS|CV_TERMCRIT_ITER, 100, 1.0);
 
-    int good = 0;
-    for(int i=0; i<total; i++)
-    {
-    	string name = names[i];
-        float desc = descriptors[i];
+	    //printf("Running kmeans ...\n");
+	    kmeans(samples, K, labels, termCriteria, attempts, KMEANS_RANDOM_CENTERS, centers);
 
-        int cls = matchClass(desc, centers);
+	    vector<vector<float>> clusters(K);
+	    for(int i=0; i<labels.rows; i++)
+	    {
+	        float m = samples.at<float>(labels.at<int>(i, 0), 0);
+	        clusters[labels.at<int>(i, 0)].push_back(m);
+	    }
 
-    	cout << name << " is in " << cls;
+	    // VERIFICATION DES RESULTATS
+	    //============================
 
-    	if(checkClass(name, cls))
-    	{
-    		cout << " [TRUE]" << endl;
-    		good++;
-    	}
-    	else
-    		cout << " [FALSE]" << endl;
-    }
+	    float result = computeResult(names, descriptors, centers);
 
-    cout << "RESULT: " << ((float)good/total) * 100 << "%" << endl;
+	    if(result > best)
+	    {
+	    	best = result;
+	    	bestLabels = Mat(labels);
+	    	bestCenters = Mat(centers);
+	    	bestClusters = clusters;
+	    }
+	}
+
+	cout << "BEST RESULT: " << best << "%" << endl;
+
+	// Show base
+	cout << "BASE " << baseSize << ", " << 5 << " centers" << endl;
+
+	for(unsigned int i=0; i<bestClusters.size(); i++)
+	    printf("Cluster[%d].size = %zu\n", i, bestClusters[i].size());
+
+	for(int i=0; i<bestCenters.rows; i++)
+	    printf("Center[%d] = %f\n", i, bestCenters.at<float>(i, 0));
 
     cout << "Done." << endl;
 
