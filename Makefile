@@ -4,7 +4,7 @@ LDFLAGS=$$(pkg-config --libs opencv)
 
 all: means sift Makefile
 
-means: src/means.cpp Makefile
+means: src/means.cpp $(ls src/local/opencv2/nonfree/*) Makefile
 	$(CXX) -o $@ $< $(LDFLAGS) $(CXXFLAGS)
 
 sift: src/sift.cpp $(ls src/local/opencv2/nonfree/*) Makefile

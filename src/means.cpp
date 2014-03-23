@@ -121,7 +121,7 @@ void createDescriptors(const vector<string> &files, vector<vector<float>> &descr
 
 		//Construct BOWKMeansTrainer
 		//the number of bags
-		int dictionarySize = 2;
+		int dictionarySize = 200;
 		//define Term Criteria
 		TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
 		//retries number
@@ -302,17 +302,17 @@ int main(int argc, char** argv)
     cout << "Training Kmeans ..." << endl;
 
     float best = 0;
-    int baseSize = 15;
-    int maxIter = 500;
+    int baseSize = 25;
+    int maxIter = 1;
     Mat bestLabels, bestCenters;
     vector<vector<vector<float>>> bestClusters;
 
     for(int it=0; it<maxIter; it++)
     {
-    	// Take 10 random images
+    	// Take images
     	vector<int> ids;
-    	for(int i=0; i<baseSize; i++)
-    		ids.push_back(rand()%total);
+    	for(int i=0; i<total; i+=total/baseSize)
+    		ids.push_back(i);
 
 	    // Création de la matrice d'entré pour K-Means (un descripteur par ligne)
 	    Mat samples(baseSize, featureCount, DataType<float>::type);
