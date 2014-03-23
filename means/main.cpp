@@ -11,6 +11,45 @@
 using namespace cv;
 using namespace std;
 
+int matchClass(float desc, Mat centers)
+{
+	int c = 0;
+	float min = 1000.0f;
+    for(int i=0; i<centers.rows; i++)
+    {
+    	float d = abs(desc-centers.at<float>(i, 0));
+    	if(d < min)
+    	{
+    		min = d;
+    		c = i;
+    	}
+    }
+    return c;
+}
+
+void createDescriptors(const vector<string> &files, vector<float> &descriptors)
+{
+	for(auto& file : files)
+    {
+        Mat src = imread(file);
+
+        Mat srcGray;
+        cvtColor(src, srcGray, CV_BGR2GRAY);
+        blur(srcGray, srcGray, Size(3, 3));
+
+        float m = mean(srcGray)[0];
+
+        descriptors.push_back(m);
+    }
+}
+
+void showDescriptors(const vector<string> &names, const vector<float> &descriptors)
+{
+    printf("Descriptors:\n");
+    for(unsigned int i=0; i<descriptors.size(); i++)
+    	cout << names[i] << ":\t" << descriptors[i] << endl;
+}
+
 int main(int argc, char** argv)
 {
 	if(argc < 2)
@@ -19,39 +58,42 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-    vector<float> means;
-    for(int h=1 ; h<argc ; h++)
-    {
-        Mat src = imread(argv[h]);
+	// CHARGEMENT DES DONNEE
+	// ======================
+	int total = argc-1;
+	vector<string> files;
+	vector<string> names;
+	vector<float> descriptors;
 
-        Mat srcGray;
-        cvtColor(src, srcGray, CV_BGR2GRAY);
-        blur(srcGray, srcGray, Size(3, 3));
-
-        float m = mean(srcGray)[0];
-
-        means.push_back(m);
+	// Initialisation
+	cout << "Initialization ..." << endl;
+	for(int h=1 ; h<argc ; h++)
+	{
+		files.push_back(argv[h]);
+    	names.push_back("img" + std::to_string(h) + ".jpg");
     }
 
-    printf("Means:\n");
-    for(float m : means)
-        printf("\t%f.2\n", m);
+    // Création des descripteurs
+    cout << "Creating descriptors ..." << endl;
+    createDescriptors(files, descriptors);
 
-    // Création de la matrice d'entré pour K-Means (un point par ligne)
-    Mat samples(means.size(), 1, DataType<float>::type);
-    for(unsigned int i=0 ; i<means.size() ; i++)
-        samples.at<float>(i, 0) = means[i];
+    // Affichage des descripteurs
+    showDescriptors(names, descriptors);
 
-    // Nombre de clusters
-    int K = 5;
+    // CREATION DE LA BASE DE DONNEE PAR APPRENTISSAGE
+    //=================================================
 
-    // Nombre d'essais (renvoie le meilleur résultat)
-    int attempts = 100;
+    // Création de la matrice d'entré pour K-Means (un descripteur par ligne)
+    Mat samples(descriptors.size(), 1, DataType<float>::type);
+    for(unsigned int i=0 ; i<descriptors.size() ; i++)
+        samples.at<float>(i, 0) = descriptors[i];
 
-    Mat labels, centers;
+    int K = 5;				// Nombre de clusters
+    int attempts = 100;		// Nombre d'essais
+    Mat labels, centers;	// Sorties
 
     // Critère d'arrêt fixé à 100 itération max avec une précision de 1.0
-    TermCriteria termCriteria(CV_TERMCRIT_EPS|CV_TERMCRIT_ITER, 250, 1.0);
+    TermCriteria termCriteria(CV_TERMCRIT_EPS|CV_TERMCRIT_ITER, 100, 1.0);
 
     printf("Running kmeans ...\n");
     kmeans(samples, K, labels, termCriteria, attempts, KMEANS_RANDOM_CENTERS, centers);
@@ -69,36 +111,20 @@ int main(int argc, char** argv)
     for(int i=0; i<centers.rows; i++)
     	printf("Center[%d] = %f\n", i, centers.at<float>(i, 0));
 
-    // Check results
+    // VERIFICATION DES RESULTATS
+    //============================
+
     int good = 0;
-    int total = argc-1;
-    for(int h=1 ; h<argc ; h++)
+    for(int i=0; i<total; i++)
     {
-    	Mat src = imread(argv[h]);
+    	string name = names[i];
+        float desc = descriptors[i];
 
-        Mat srcGray;
-        cvtColor(src, srcGray, CV_BGR2GRAY);
-        blur(srcGray, srcGray, Size(3, 3));
+        int cls = matchClass(desc, centers);
 
-        float m = mean(srcGray)[0];
+    	cout << name << " is in " << cls;
 
-        int cls;
-        float min = 1000.0f;
-        for(int i=0; i<centers.rows; i++)
-        {
-        	float d = abs(m-centers.at<float>(i, 0));
-        	if(d < min)
-        	{
-        		min = d;
-        		cls = i;
-        	}
-        }
-
-    	string img = "img" + std::to_string(h) + ".jpg";
-
-    	cout << img << " is in " << cls;;
-
-    	if(checkClass(img, cls))
+    	if(checkClass(name, cls))
     	{
     		cout << " [TRUE]" << endl;
     		good++;
@@ -109,7 +135,7 @@ int main(int argc, char** argv)
 
     cout << "RESULT: " << ((float)good/total) * 100 << "%" << endl;
 
-    cout << "Done" << endl;
+    cout << "Done." << endl;
 
     return 0;
 }
