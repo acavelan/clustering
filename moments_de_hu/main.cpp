@@ -64,32 +64,41 @@ vector<vector<Point2d>> pca2DList(vector<vector<array<double, descriptorSize>>> 
 }
 
 
-void showPoints(vector<Point2d> points, Scalar color, Mat drawingImage)
+pair<Point2d, Point2d> makeBoundingBox(vector<vector<Point2d>> pointGroupList)
 {
-    Mat drawing = Mat::zeros(600, 800, CV_8UC3);
     double minX = +numeric_limits<double>::infinity();
     double minY = +numeric_limits<double>::infinity();
     double maxX = -numeric_limits<double>::infinity();
     double maxY = -numeric_limits<double>::infinity();
 
-    for(int i=0 ; i<points.size() ; i++)
+    for(auto& pointList : pointGroupList)
     {
-        double x = points[i].x;
-        double y = points[i].y;
-        minX = (x < minX) ? x : minX;
-        minY = (y < minY) ? y : minY;
-        maxX = (x > maxX) ? x : maxX;
-        maxY = (y > maxY) ? y : maxY;
+        for(auto& point : pointList)
+        {
+            minX = (point.x < minX) ? point.x : minX;
+            minY = (point.y < minY) ? point.y : minY;
+            maxX = (point.x > maxX) ? point.x : maxX;
+            maxY = (point.y > maxY) ? point.y : maxY;
+        }
     }
 
-    //cout << minX << " " << maxX << " " << minY << " " << maxY << endl;
+    cout << "BoundingBox:" << endl;
+    cout << "\tmin:(" << minX << " " << minY << ") max:(" << minX << " " << minY << ")" << endl;
 
-    for(int i=0 ; i<points.size() ; i++)
+    return make_pair(Point2d(minX, minY), Point2d(maxX, maxY));
+}
+
+
+void showPoints(vector<Point2d> pointList, Scalar color, Mat drawingImage, pair<Point2d, Point2d> boundingBox)
+{
+    Mat drawing = Mat::zeros(768, 1024, CV_8UC3);
+
+    for(auto& point : pointList)
     {
         Point2i pointPos;
-        pointPos.x = 5 + int((points[i].x-minX) / (maxX-minX) * (drawingImage.cols-10) + 0.5);
-        pointPos.y = 5 + int((points[i].y-minY) / (maxY-minY) * (drawingImage.rows-10) + 0.5);
-        circle(drawingImage, pointPos, 2, color, -1, 8);
+        pointPos.x = 5 + int((point.x-boundingBox.first.x) / (boundingBox.second.x-boundingBox.first.x) * (drawingImage.cols-10) + 0.5);
+        pointPos.y = 5 + int((point.y-boundingBox.first.y) / (boundingBox.second.y-boundingBox.first.y) * (drawingImage.rows-10) + 0.5);
+        circle(drawingImage, pointPos, 1, color, -1, 8);
         //cout << pointPos.x << " " << pointPos.y << endl;
     }
 }
@@ -116,13 +125,23 @@ Scalar randomColor(RNG& randomGen)
     //int icolor = (unsigned int)randomGen;
     //return Scalar(icolor&255, (icolor>>8)&255, (icolor>>16)&255);
     vector<Scalar> colors;
-    colors.push_back(Scalar(256, 0, 0));
+    /*colors.push_back(Scalar(256, 0, 0));
     colors.push_back(Scalar(0, 256, 0));
     colors.push_back(Scalar(0, 0, 256));
     colors.push_back(Scalar(256, 256, 0));
     colors.push_back(Scalar(0, 256, 256));
     colors.push_back(Scalar(256, 0, 256));
-    colors.push_back(Scalar(256, 256, 256));
+    colors.push_back(Scalar(256, 256, 256));*/
+    for(int j=0 ; j<10 ; j++)
+        colors.push_back(Scalar(255, 255, 0));
+    for(int j=0 ; j<10 ; j++)
+        colors.push_back(Scalar(0, 255, 255));
+    for(int j=0 ; j<10 ; j++)
+        colors.push_back(Scalar(255, 0, 255));
+    for(int j=0 ; j<10 ; j++)
+        colors.push_back(Scalar(0, 255, 0));
+    for(int j=0 ; j<10 ; j++)
+        colors.push_back(Scalar(255, 0, 0));
     return colors[i++];
 }
 
@@ -145,7 +164,7 @@ int main(int argc, char** argv)
 
         // Détecte les contours avec Canny
         Mat cannyOutput;
-        const int thresh = 64;
+        const int thresh = 128;
         Canny(srcGray, cannyOutput, thresh, thresh*2, 3);
 
         // Trouve les différents contours
@@ -169,11 +188,46 @@ int main(int argc, char** argv)
         huList.push_back(hu);
     }
 
+    // Suppression des points lointains
+    for(auto& hu : huList)
+    {
+        for(auto& point : hu)
+        {
+            double sum = 0;
+
+            for(int i=0 ; i<7 ; i++)
+                sum += point[i]*point[i];
+
+            if(sqrt(sum) > 0.18)
+                for(int i=0 ; i<7 ; i++)
+                    point[i] = 0;
+        }
+    }
+/*
+    // Moyennage des descripteurs d'une image
+    for(auto& hu : huList)
+    {
+        array<double, 7> sum = {0, 0, 0, 0, 0, 0, 0};
+
+        for(auto& point : hu)
+        {
+            for(int i=0 ; i<7 ; i++)
+                sum[i] += point[i] / hu.size();
+        }
+
+        hu.clear();
+        hu.push_back(sum);
+        cout << sum[0] << " " << sum[1] << " " << sum[2] << " " << sum[3] << " " << sum[4] << " " << sum[5] << " " << sum[6] << endl;
+    }
+*/
+    auto pointGroupList = pca2DList<7>(huList);
+    auto boundingBox = makeBoundingBox(pointGroupList);
+
     cout << "Colors:" << endl;
-    for(auto& pointList : pca2DList<7>(huList))
+    for(auto& pointList : pointGroupList)
     {
         Scalar color = randomColor(randomGen);
-        showPoints(pointList, color, drawing);
+        showPoints(pointList, color, drawing, boundingBox);
         cout << "\t" << color << endl;
     }
 
