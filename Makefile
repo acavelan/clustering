@@ -1,16 +1,21 @@
 CXX=g++
-CXXFLAGS=-std=c++11 -Wall $$(pkg-config --cflags opencv)
+CXXFLAGS=-std=c++11 -Wall $$(pkg-config --cflags opencv) -Isrc/local
 LDFLAGS=$$(pkg-config --libs opencv)
-TARGET=main
 
-all: $(TARGET) Makefile
+all: means sift Makefile
 
-$(TARGET): src/main.cpp Makefile
+means: src/means.cpp Makefile
 	$(CXX) -o $@ $< $(LDFLAGS) $(CXXFLAGS)
 
-run: all Makefile
-	./$(TARGET) data/img{1..50}.jpg
+sift: src/sift.cpp $(ls src/local/opencv2/nonfree/*) Makefile
+	$(CXX) -o $@ $< $(LDFLAGS) $(CXXFLAGS)
+
+run-means: means Makefile
+	./means data/img{1..50}.jpg
+
+run-sift: sift Makefile
+	./sift data/img{1..50}.jpg
 
 clean:
-	$(RM) $(TARGET) *.o
+	$(RM) means sift *.o
 

@@ -1,5 +1,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/features2d/features2d.hpp>
+#include "opencv2/nonfree/features2d.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -64,7 +66,7 @@ bool checkClass(const string &img, int cls)
 	return in;
 }
 
-void createDescriptors(const vector<string> &files, vector<vector<float>> &descriptors, int &featureCount)
+/*void createDescriptors(const vector<string> &files, vector<vector<float>> &descriptors, int &featureCount)
 {
 	for(auto& file : files)
     {
@@ -83,6 +85,114 @@ void createDescriptors(const vector<string> &files, vector<vector<float>> &descr
     }
 
     featureCount = 1;
+}*/
+
+void createDescriptors(const vector<string> &files, vector<vector<float>> &descriptors, int &featureCount)
+{
+	Mat dictionary; 
+	FileStorage fs("dictionary.yml", FileStorage::READ);
+
+	if(fs.isOpened() == false)
+	{
+		cout << "Creating Bag of Words dictionary ..." << endl;
+		Mat input;    
+		//To store the keypoints that will be extracted by SIFT
+		vector<KeyPoint> keypoints;
+		//To store the SIFT descriptor of current image
+		Mat descriptor;
+		//To store all the descriptors that are extracted from all the images.
+		Mat featuresUnclustered;
+		//The SIFT feature extractor and descriptor
+		SiftDescriptorExtractor detector;
+
+		//I select 20 (1000/50) images from 1000 images to extract
+		//feature descriptors and build the vocabulary
+		for(auto& file : files)
+		{        
+		    //open the file
+		    input = imread(file, CV_LOAD_IMAGE_GRAYSCALE); //Load as grayscale                
+		    //detect feature points
+		    detector.detect(input, keypoints);
+		    //compute the descriptors for each keypoint
+		    detector.compute(input, keypoints,descriptor);        
+		    //put the all feature descriptors in a single Mat object 
+		    featuresUnclustered.push_back(descriptor);        
+		}    
+
+		//Construct BOWKMeansTrainer
+		//the number of bags
+		int dictionarySize = 2;
+		//define Term Criteria
+		TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
+		//retries number
+		int retries = 1;
+		//necessary flags
+		int flags = KMEANS_PP_CENTERS;
+		//Create the BoW (or BoF) trainer
+		BOWKMeansTrainer bowTrainer(dictionarySize,tc,retries,flags);
+		//cluster the feature vectors
+		dictionary = bowTrainer.cluster(featuresUnclustered);
+
+		//store the vocabulary
+		FileStorage fs("dictionary.yml", FileStorage::WRITE);
+		fs << "vocabulary" << dictionary;
+		fs.release();
+	}
+	else
+	{
+		fs["vocabulary"] >> dictionary;
+		fs.release(); 
+	}
+
+	cout << "Creating SIFT descriptors ..." << endl;
+
+	//create a nearest neighbor matcher
+    Ptr<DescriptorMatcher> matcher(new FlannBasedMatcher);
+    //create Sift feature point extracter
+    Ptr<FeatureDetector> detector(new SiftFeatureDetector());
+    //create Sift descriptor extractor
+    Ptr<DescriptorExtractor> extractor(new SiftDescriptorExtractor);    
+    //create BoF (or BoW) descriptor extractor
+    BOWImgDescriptorExtractor bowDE(extractor,matcher);
+    //Set the dictionary with the vocabulary we created in the first step
+    bowDE.setVocabulary(dictionary);
+
+	for(auto& file : files)
+    {
+    	//To store the BoW (or BoF) representation of the image
+    	Mat bowDescriptor;
+    	string fileDescriptor = string(file + ".yml");
+    	FileStorage descf(fileDescriptor, FileStorage::READ);
+
+    	if(descf.isOpened() == false)
+    	{
+	        Mat src = imread(file, CV_LOAD_IMAGE_GRAYSCALE);
+
+	        vector<KeyPoint> keypoints;        
+		    //Detect SIFT keypoints (or feature points)
+		    detector->detect(src, keypoints);
+ 
+		    //extract BoW (or BoF) descriptor from given image
+		    bowDE.compute(src, keypoints, bowDescriptor);
+
+		    FileStorage descfw(fileDescriptor, FileStorage::WRITE);
+		    descfw << "image" << bowDescriptor;
+		    descfw.release();
+		}
+		else
+		{
+			descf["image"] >> bowDescriptor;
+			descf.release(); 
+		}
+	    
+	    vector<float> features;
+		for(int i=0; i<bowDescriptor.cols; i++)
+			features.push_back(bowDescriptor.at<float>(0, i));
+
+        descriptors.push_back(features);
+    }
+
+    featureCount = dictionary.rows;
 }
 
 void showDescriptors(const vector<string> &names, const vector<vector<float>> &descriptors)
@@ -110,15 +220,18 @@ float distance(const vector<float> &v1, const vector<float> &v2)
 int matchClass(vector<float> desc, Mat centers)
 {
 	int c = 0;
-	float min = 1000.0f;
+	float min = 100000.0f;
     for(int i=0; i<centers.rows; i++)
     {
-    	vector<float> center;
+    	vector<float> v1, v2;
 
     	for(int j=0; j<centers.cols; j++)
-    		center.push_back(centers.at<float>(i, j));
+    	{
+    		v1.push_back(centers.at<float>(i, j));
+    		v2.push_back(desc[j]);
+    	}
 
-    	float d = distance(desc, center);
+    	float d = distance(v1, v2);
 
     	if(d < min)
     	{
@@ -167,7 +280,7 @@ int main(int argc, char** argv)
 	vector<vector<float>> descriptors;
 
 	// Initialisation
-	cout << "Initialization ..." << endl;
+	cout << "Initializing ..." << endl;
 	for(int h=1 ; h<argc ; h++)
 	{
 		files.push_back(argv[h]);
@@ -181,14 +294,16 @@ int main(int argc, char** argv)
     createDescriptors(files, descriptors, featureCount);
 
     // Affichage des descripteurs
-    //showDescriptors(names, descriptors);
+    // showDescriptors(names, descriptors);
 
     // CREATION DE LA BASE DE DONNEE PAR APPRENTISSAGE
     //=================================================
 
+    cout << "Training Kmeans ..." << endl;
+
     float best = 0;
-    int baseSize = 8;
-    int maxIter = 1000;
+    int baseSize = 15;
+    int maxIter = 500;
     Mat bestLabels, bestCenters;
     vector<vector<vector<float>>> bestClusters;
 
@@ -209,11 +324,11 @@ int main(int argc, char** argv)
 	    //========
 
 	    int K = 5;				// Nombre de clusters
-	    int attempts = 100;		// Nombre d'essais
+	    int attempts = 20;		// Nombre d'essais
 	    Mat labels, centers;	// Sorties
 
 	    // Critère d'arrêt fixé à 100 itération max avec une précision de 1.0
-	    TermCriteria termCriteria(CV_TERMCRIT_EPS|CV_TERMCRIT_ITER, 100, 1.0);
+	    TermCriteria termCriteria(CV_TERMCRIT_EPS|CV_TERMCRIT_ITER, 250, 0.001);
 
 	    //printf("Running kmeans ...\n");
 	    kmeans(samples, K, labels, termCriteria, attempts, KMEANS_RANDOM_CENTERS, centers);
@@ -253,8 +368,13 @@ int main(int argc, char** argv)
 	for(unsigned int i=0; i<bestClusters.size(); i++)
 	    printf("Cluster[%d].size = %zu\n", i, bestClusters[i].size());
 
-	for(int i=0; i<bestCenters.rows; i++)
-	    printf("Center[%d] = %f\n", i, bestCenters.at<float>(i, 0));
+	/*for(int i=0; i<bestCenters.rows; i++)
+	{
+	    cout << "Center[" << i << "] = ";
+	    for(int j=0; j<bestCenters.cols; j++)
+	    	cout << bestCenters.at<float>(i, j) << " ";
+	    cout << endl;
+	}*/
 
     cout << "Done." << endl;
 
