@@ -48,7 +48,7 @@ bool checkClass(const string &img, int cls)
 	bool in = false;
 	try
 	{
-		static map<string, int> DB = loadDB("../data/classes.csv");
+		static map<string, int> DB = loadDB("data/classes.csv");
 
 		in = (DB.at(img) == cls);
 	}

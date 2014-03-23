@@ -9,7 +9,7 @@ $(TARGET): src/main.cpp Makefile
 	$(CXX) -o $@ $< $(LDFLAGS) $(CXXFLAGS)
 
 run: all Makefile
-	./$(TARGET) ../data/img{1..50}.jpg
+	./$(TARGET) data/img{1..50}.jpg
 
 clean:
 	$(RM) $(TARGET) *.o
