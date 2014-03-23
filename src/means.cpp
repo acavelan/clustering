@@ -1,7 +1,7 @@
+#include "utils.hpp"
+
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/features2d/features2d.hpp>
-#include "opencv2/nonfree/features2d.hpp"
+#include <opencv2/nonfree/features2d.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -14,57 +14,6 @@
 using namespace cv;
 using namespace std;
 
-// Load CSV file
-map<string, int> loadDB(const string &dbfilename)
-{
-	map<string, int> DB;
-
-	ifstream dbfile(dbfilename);
-
-	if(dbfile.is_open())
-	{
-		string line;
-		dbfile >> line;
-
-		while(!dbfile.eof())
-		{
-			dbfile >> line;
-			istringstream ss(line);
-
-			string name;
-			getline(ss, name, ',');
-
-			int cls;
-			ss >> cls;
-
-			DB[name] = cls;
-		}
-		dbfile.close();
-	}
-
-	return DB;
-}
-
-bool checkClass(const string &img, int cls)
-{
-	bool in = false;
-	try
-	{
-		static map<string, int> DB = loadDB("data/classes.csv");
-
-		in = (DB.at(img) == cls);
-	}
-	catch(out_of_range &e)
-	{
-		cout << "Out of range excpetion with " << img << endl;
-	}
-	catch(exception &e)
-	{
-		cout << e.what() << endl;
-	}
-
-	return in;
-}
 
 /*void createDescriptors(const vector<string> &files, vector<vector<float>> &descriptors, int &featureCount)
 {

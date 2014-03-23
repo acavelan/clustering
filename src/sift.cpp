@@ -4,12 +4,14 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d/features2d.hpp>
 
-#include "opencv2/nonfree/features2d.hpp"
+#include <opencv2/nonfree/features2d.hpp>
+
 
 using namespace cv;
 using namespace std;
 
 #define DICTIONARY_BUILD 1 // set DICTIONARY_BUILD to 1 for Step 1. 0 for step 2#if DICTIONARY_BUILD == 1
+
 
 int main(int argc, char** argv)
 {
