@@ -56,10 +56,10 @@ void createDescriptors(const vector<string> &files, vector<vector<float>> &descr
 
 		//I select 20 (1000/50) images from 1000 images to extract
 		//feature descriptors and build the vocabulary
-		for(auto& file : files)
+		for(unsigned int i=0; i<files.size(); i++)
 		{        
 		    //open the file
-		    input = imread(file, CV_LOAD_IMAGE_GRAYSCALE); //Load as grayscale                
+		    input = imread(files[i], CV_LOAD_IMAGE_GRAYSCALE); //Load as grayscale                
 		    //detect feature points
 		    detector.detect(input, keypoints);
 		    //compute the descriptors for each keypoint
@@ -70,7 +70,7 @@ void createDescriptors(const vector<string> &files, vector<vector<float>> &descr
 
 		//Construct BOWKMeansTrainer
 		//the number of bags
-		int dictionarySize = 250;
+		int dictionarySize = 100;
 		//define Term Criteria
 		TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
 		//retries number
@@ -204,8 +204,8 @@ float computeResult(const vector<string> &names, const vector<vector<float>> &de
 
         allLabels.push_back(cls);
 
-    	if(checkClass(name, cls))
-    		good++;
+    	/*if(checkClass(name, cls))
+    		good++;*/
     }
 
     return ((float)good/total) * 100;
@@ -237,7 +237,7 @@ int main(int argc, char** argv)
 	for(int h=1 ; h<argc ; h++)
 	{
 		files.push_back(argv[h]);
-    	names.push_back("img" + to_string(h) + ".jpg");
+    	names.push_back(argv[h]);
     }
 
     // DESCRIPTORS
@@ -255,8 +255,8 @@ int main(int argc, char** argv)
     cout << "Training Kmeans ..." << endl;
 
     float best = 0;
-    int baseSize = 10;
-    int maxIter = 100;
+    int baseSize = 5;
+    int maxIter = 1;
     Mat bestCenters;
     vector<int> bestLabels;
     vector<vector<vector<float>>> bestClusters;
@@ -329,8 +329,8 @@ int main(int argc, char** argv)
 	for(unsigned int i=0; i<bestClusters.size(); i++)
 	    printf("Cluster[%d].size = %zu\n", i, bestClusters[i].size());
 
-	/*for(unsigned int i=0; i<bestLabels.size(); i++)
-		cout << names[i] << " = " << bestLabels[i] << endl;*/
+	for(unsigned int i=0; i<bestLabels.size(); i++)
+		cout << names[i] << " = " << bestLabels[i] << endl;
 
 	/*for(int i=0; i<bestCenters.rows; i++)
 	{
