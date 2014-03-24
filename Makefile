@@ -21,11 +21,11 @@ sift: src/sift.o src/utils.o $(OBJ_NONFREE)
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
 run-means: means
-	./means data/img{1..50}.jpg
+	./means data/img*.jpg
 
 run-sift: sift
-	./sift data/img{1..50}.jpg
+	./sift data/img*.jpg
 
 clean:
-	$(RM) means sift src/*.o $(NONFREE)/*.o
+	$(RM) means sift src/*.o $(NONFREE)/*.o dictionary.yml data/*.yml
 

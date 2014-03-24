@@ -251,10 +251,16 @@ int main(int argc, char** argv)
     cout << "Training Kmeans ..." << endl;
 
     float best = 0;
-    int baseSize = 25;
+    int baseSize = 5;
     int maxIter = 1;
     Mat bestLabels, bestCenters;
     vector<vector<vector<float>>> bestClusters;
+
+    if(total < baseSize)
+    {
+        cerr << "Not enouth input pictures" << endl;
+        exit(1);
+    }
 
     for(int it=0; it<maxIter; it++)
     {
