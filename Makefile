@@ -3,7 +3,8 @@ NONFREE=src/local/opencv2/nonfree
 CXXFLAGS=-std=c++11 -Wall $$(pkg-config --cflags opencv) -Isrc/local -O3
 LDFLAGS=$$(pkg-config --libs opencv)
 SRC_NONFREE=$(wildcard $(NONFREE)/*.cpp)
-OBJ_NONFREE=$(SRC_NONFREE:.cpp=.o)
+OBJ_NONFREE=
+#$(SRC_NONFREE:.cpp=.o)
 
 
 all: means sift

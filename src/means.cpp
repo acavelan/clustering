@@ -19,11 +19,9 @@ using namespace std;
 {
 	for(auto& file : files)
     {
-        Mat src = imread(file);
+        Mat srcGray = imread(file, CV_LOAD_IMAGE_GRAYSCALE);
 
-        Mat srcGray;
-        cvtColor(src, srcGray, CV_BGR2GRAY);
-        blur(srcGray, srcGray, Size(3, 3));
+        //blur(srcGray, srcGray, Size(3, 3));
 
         float m = mean(srcGray)[0];
 
@@ -57,29 +55,38 @@ void createDescriptors(const vector<string> &files, vector<vector<float>> &descr
 		//I select 20 (1000/50) images from 1000 images to extract
 		//feature descriptors and build the vocabulary
 		for(auto& file : files)
-		{        
+		{
 		    //open the file
-		    input = imread(file, CV_LOAD_IMAGE_GRAYSCALE); //Load as grayscale
+		    input = imread(file, CV_LOAD_IMAGE_GRAYSCALE); //Load as grayscale                
+
+		    if(input.rows == 0)
+		    {
+		    	cout << "Image: " << file << " not found" << endl;
+		    	break;
+		    }
+
 		    //detect feature points
 		    detector.detect(input, keypoints);
 		    //compute the descriptors for each keypoint
 		    detector.compute(input, keypoints,descriptor);        
 		    //put the all feature descriptors in a single Mat object 
-		    featuresUnclustered.push_back(descriptor);
-		}
+		    featuresUnclustered.push_back(descriptor);    
+		}    
 
 		//Construct BOWKMeansTrainer
 		//the number of bags
-		int dictionarySize = 250;
+		int dictionarySize = 128;
 		//define Term Criteria
 		TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
 		//retries number
 		int retries = 1;
 		//necessary flags
 		int flags = KMEANS_PP_CENTERS;
+
 		//Create the BoW (or BoF) trainer
 		BOWKMeansTrainer bowTrainer(dictionarySize,tc,retries,flags);
 		//cluster the feature vectors
+
 		dictionary = bowTrainer.cluster(featuresUnclustered);
 
 		//store the vocabulary
@@ -117,6 +124,12 @@ void createDescriptors(const vector<string> &files, vector<vector<float>> &descr
     	{
 	        Mat src = imread(file, CV_LOAD_IMAGE_GRAYSCALE);
 
+	        if(src.rows == 0)
+		    {
+		    	cout << "Image: " << file << " not found" << endl;
+		    	break;
+		    }
+
 	        vector<KeyPoint> keypoints;        
 		    //Detect SIFT keypoints (or feature points)
 		    detector->detect(src, keypoints);
@@ -137,6 +150,13 @@ void createDescriptors(const vector<string> &files, vector<vector<float>> &descr
 	    vector<float> features;
 		for(int i=0; i<bowDescriptor.cols; i++)
 			features.push_back(bowDescriptor.at<float>(0, i));
+
+		if(features.size() == 0)
+		{
+			cout << "Warning: empty SIFT descriptor for " << file << endl;
+			for(int i=0; i<dictionary.rows; i++)
+				features.push_back(1.0/dictionary.rows);
+		}
 
         descriptors.push_back(features);
     }
@@ -204,8 +224,8 @@ float computeResult(const vector<string> &names, const vector<vector<float>> &de
 
         allLabels.push_back(cls);
 
-    	if(checkClass(name, cls))
-    		good++;
+    	/*if(checkClass(name, cls))
+    		good++;*/
     }
 
     return ((float)good/total) * 100;
@@ -237,7 +257,7 @@ int main(int argc, char** argv)
 	for(int h=1 ; h<argc ; h++)
 	{
 		files.push_back(argv[h]);
-    	names.push_back("img" + to_string(h) + ".jpg");
+    	names.push_back(argv[h]);
     }
 
     // DESCRIPTORS
@@ -247,16 +267,19 @@ int main(int argc, char** argv)
     createDescriptors(files, descriptors, featureCount);
 
     // Affichage des descripteurs
-    // showDescriptors(names, descriptors);
+    //showDescriptors(names, descriptors);
 
     // CREATION DE LA BASE DE DONNEE PAR APPRENTISSAGE
     //=================================================
 
     cout << "Training Kmeans ..." << endl;
 
+    int K = 2;				// Nombre de clusters
+    int attempts = 20;		// Nombre d'essais
+
     float best = 0;
-    int baseSize = 10;
-    int maxIter = 100;
+    int baseSize = total;
+    int maxIter = 1;
     Mat bestCenters;
     vector<int> bestLabels;
     vector<vector<vector<float>>> bestClusters;
@@ -271,7 +294,7 @@ int main(int argc, char** argv)
     {
     	// Take images
     	vector<int> ids;
-    	for(int i=0; i<total; i+=total/baseSize)
+    	for(int i=0; i<baseSize; i++)
     		ids.push_back(i);
 
 	    // Création de la matrice d'entré pour K-Means (un descripteur par ligne)
@@ -282,9 +305,6 @@ int main(int argc, char** argv)
 
 	    // KMEANS
 	    //========
-
-	    int K = 5;				// Nombre de clusters
-	    int attempts = 20;		// Nombre d'essais
 	    Mat labels, centers;	// Sorties
 
 	    // Critère d'arrêt fixé à 100 itération max avec une précision de 1.0
@@ -329,8 +349,8 @@ int main(int argc, char** argv)
 	for(unsigned int i=0; i<bestClusters.size(); i++)
 	    printf("Cluster[%d].size = %zu\n", i, bestClusters[i].size());
 
-	/*for(unsigned int i=0; i<bestLabels.size(); i++)
-		cout << names[i] << " = " << bestLabels[i] << endl;*/
+	for(unsigned int i=0; i<bestLabels.size(); i++)
+		cout << names[i] << " = " << bestLabels[i] << endl;
 
 	/*for(int i=0; i<bestCenters.rows; i++)
 	{
@@ -339,9 +359,6 @@ int main(int argc, char** argv)
 	    	cout << bestCenters.at<float>(i, j) << " ";
 	    cout << endl;
 	}*/
-
-    for(unsigned int i=0; i<bestLabels.size(); i++)
-        cout << names[i] << " = " << bestLabels[i] << endl;
 
     cout << "Done." << endl;
 
