@@ -67,12 +67,31 @@ bool checkClass(const string &img, int cls)
 }
 
 
-pair<Point2d, Point2d> makeBoundingBox(vector<vector<Point2d>> pointGroupList)
+pair<Point2f, Point2f> makeBoundingBox(vector<Point2f> pointList)
 {
-    double minX = +numeric_limits<double>::infinity();
-    double minY = +numeric_limits<double>::infinity();
-    double maxX = -numeric_limits<double>::infinity();
-    double maxY = -numeric_limits<double>::infinity();
+    float minX = +numeric_limits<float>::infinity();
+    float minY = +numeric_limits<float>::infinity();
+    float maxX = -numeric_limits<float>::infinity();
+    float maxY = -numeric_limits<float>::infinity();
+
+    for(auto& point : pointList)
+    {
+        minX = (point.x < minX) ? point.x : minX;
+        minY = (point.y < minY) ? point.y : minY;
+        maxX = (point.x > maxX) ? point.x : maxX;
+        maxY = (point.y > maxY) ? point.y : maxY;
+    }
+
+    return make_pair(Point2f(minX, minY), Point2f(maxX, maxY));
+}
+
+
+pair<Point2f, Point2f> makeBoundingBox(vector<vector<Point2f>> pointGroupList)
+{
+    float minX = +numeric_limits<float>::infinity();
+    float minY = +numeric_limits<float>::infinity();
+    float maxX = -numeric_limits<float>::infinity();
+    float maxY = -numeric_limits<float>::infinity();
 
     for(auto& pointList : pointGroupList)
     {
@@ -85,22 +104,17 @@ pair<Point2d, Point2d> makeBoundingBox(vector<vector<Point2d>> pointGroupList)
         }
     }
 
-    cout << "BoundingBox:" << endl;
-    cout << "\tmin:(" << minX << " " << minY << ") max:(" << minX << " " << minY << ")" << endl;
-
-    return make_pair(Point2d(minX, minY), Point2d(maxX, maxY));
+    return make_pair(Point2f(minX, minY), Point2f(maxX, maxY));
 }
 
 
-void showPoints(vector<Point2d> pointList, Scalar color, Mat drawingImage, pair<Point2d, Point2d> boundingBox)
+void showPoints(vector<Point2f> pointList, Scalar color, Mat drawingImage, pair<Point2f, Point2f> boundingBox)
 {
-    Mat drawing = Mat::zeros(768, 1024, CV_8UC3);
-
     for(auto& point : pointList)
     {
         Point2i pointPos;
         pointPos.x = 5 + int((point.x-boundingBox.first.x) / (boundingBox.second.x-boundingBox.first.x) * (drawingImage.cols-10) + 0.5);
-        pointPos.y = 5 + int((point.y-boundingBox.first.y) / (boundingBox.second.y-boundingBox.first.y) * (drawingImage.rows-10) + 0.5);
+        pointPos.y = drawingImage.rows - (5 + int((point.y-boundingBox.first.y) / (boundingBox.second.y-boundingBox.first.y) * (drawingImage.rows-10) + 0.5));
         circle(drawingImage, pointPos, 1, color, -1, 8);
         //cout << pointPos.x << " " << pointPos.y << endl;
     }
@@ -110,8 +124,9 @@ void showPoints(vector<Point2d> pointList, Scalar color, Mat drawingImage, pair<
 vector<Point2f> pca2D(vector<vector<float>> descriptorList)
 {
     int descriptorSize = (descriptorList.size() > 0) ? descriptorList[0].size() : 0;
+
     Mat inputData(descriptorList.size(), descriptorSize, CV_32F);
-    Mat tmpRow(1, 2, CV_64F);
+    Mat tmpRow(1, 2, CV_32F);
     vector<Point2f> outputData(descriptorList.size());
 
     for(int i=0 ; i<inputData.rows ; i++)
@@ -123,8 +138,8 @@ vector<Point2f> pca2D(vector<vector<float>> descriptorList)
     for(int i=0 ; i<inputData.rows ; i++)
     {
         pca.project(inputData.row(i), tmpRow.row(0));
-        outputData[i].x = tmpRow.at<double>(0, 0);
-        outputData[i].y = tmpRow.at<double>(0, 1);
+        outputData[i].x = tmpRow.at<float>(0, 0);
+        outputData[i].y = tmpRow.at<float>(0, 1);
     }
 
     return outputData;

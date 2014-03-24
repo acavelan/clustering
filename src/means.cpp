@@ -347,25 +347,44 @@ int main(int argc, char** argv)
 
 
     // ACP et affichage
-/*
+
+    cout << "DEBUG: " << descriptors.size() << "x" << descriptors[0].size() << endl;
+
     Mat drawing = Mat::zeros(768, 1024, CV_8UC3);
-    vector<vector<vector<double, 7>>> huList;
 
-    auto pointGroupList = pca2D(huList);
-    auto boundingBox = makeBoundingBox(pointGroupList);
-
-    cout << "Colors:" << endl;
-    for(auto& pointList : pointGroupList)
+//*
+    auto pointList = pca2D(descriptors);
+/*/
+    vector<Point2f> pointList;
+    for(auto& desc : descriptors)
+        pointList.push_back(Point2f(desc[0], desc[1]));
+//*/
+    auto boundingBox = makeBoundingBox(pointList);
+//*
+    // Affichage des couleurs en fonction des groupes réels
+    Scalar color;
+    for(unsigned int i=0 ; i<pointList.size() ; i++)
     {
-        Scalar color = Scalar(1, 1, 1);
-        showPoints(pointList, color, drawing, boundingBox);
-        cout << "\t" << color << endl;
+        if(i%10 == 0)
+            color = Scalar(rand()%255, rand()%255, rand()%255);
+        showPoints({pointList[i]}, color, drawing, boundingBox);
     }
+/*/
+    // Affichage des couleurs en fonction des groupes trouvé par apprentissage
+    vector<Scalar> colorList(5);
+    for(unsigned int i=0 ; i<colorList.size() ; i++)
+        colorList[i] = Scalar(rand()%255, rand()%255, rand()%255);
+    for(unsigned int i=0 ; i<pointList.size() ; i++)
+        showPoints({pointList[i]}, colorList[bestLabels[i]], drawing, boundingBox);
+//*/
+    cout << "BoundingBox:" << endl;
+    cout << "\tmin = (" << boundingBox.first.x << ", " << boundingBox.first.y << ")" << endl;
+    cout << "\tmax = (" << boundingBox.second.x << ", " << boundingBox.second.y << ")" << endl;
 
     namedWindow("2DPointView", CV_WINDOW_AUTOSIZE);
     imshow("2DPointView", drawing);
     waitKey(0);
-*/
+
     return 0;
 }
 
