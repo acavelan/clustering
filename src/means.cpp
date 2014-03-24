@@ -70,7 +70,7 @@ void createDescriptors(const vector<string> &files, vector<vector<float>> &descr
 
 		//Construct BOWKMeansTrainer
 		//the number of bags
-		int dictionarySize = 200;
+		int dictionarySize = 250;
 		//define Term Criteria
 		TermCriteria tc(CV_TERMCRIT_ITER,100,0.001);
 		//retries number
@@ -170,16 +170,18 @@ int matchClass(vector<float> desc, Mat centers)
 {
 	int c = 0;
 	float min = 100000.0f;
+
+	vector<float> v1;
+	for(int i=0; i<centers.rows; i++)
+    	v1.push_back(desc[i]);
+
     for(int i=0; i<centers.rows; i++)
     {
-    	vector<float> v1, v2;
+    	vector<float> v2;
 
     	for(int j=0; j<centers.cols; j++)
-    	{
-    		v1.push_back(centers.at<float>(i, j));
-    		v2.push_back(desc[j]);
-    	}
-
+    		v2.push_back(centers.at<float>(i, j));
+    	
     	float d = distance(v1, v2);
 
     	if(d < min)
@@ -191,7 +193,7 @@ int matchClass(vector<float> desc, Mat centers)
     return c;
 }
 
-float computeResult(const vector<string> &names, const vector<vector<float>> &descriptors, const Mat &centers)
+float computeResult(const vector<string> &names, const vector<vector<float>> &descriptors, const Mat &centers, std::vector<int> &allLabels)
 {
 	int good = 0;
 	int total = names.size();
@@ -199,6 +201,8 @@ float computeResult(const vector<string> &names, const vector<vector<float>> &de
     {
     	string name = names[i];
         int cls = matchClass(descriptors[i], centers);
+
+        allLabels.push_back(cls);
 
     	if(checkClass(name, cls))
     		good++;
@@ -251,9 +255,10 @@ int main(int argc, char** argv)
     cout << "Training Kmeans ..." << endl;
 
     float best = 0;
-    int baseSize = 5;
-    int maxIter = 1;
-    Mat bestLabels, bestCenters;
+    int baseSize = 10;
+    int maxIter = 100;
+    Mat bestCenters;
+    vector<int> bestLabels;
     vector<vector<vector<float>>> bestClusters;
 
     if(total < baseSize)
@@ -304,12 +309,13 @@ int main(int argc, char** argv)
 	    // VERIFICATION DES RESULTATS
 	    //============================
 
-	    float result = computeResult(names, descriptors, centers);
+	    vector<int> allLabels;
+	    float result = computeResult(names, descriptors, centers, allLabels);
 
 	    if(result >= best)
 	    {
 	    	best = result;
-	    	bestLabels = Mat(labels);
+	    	bestLabels = allLabels;
 	    	bestCenters = Mat(centers);
 	    	bestClusters = clusters;
 	    }
@@ -322,6 +328,9 @@ int main(int argc, char** argv)
 
 	for(unsigned int i=0; i<bestClusters.size(); i++)
 	    printf("Cluster[%d].size = %zu\n", i, bestClusters[i].size());
+
+	/*for(unsigned int i=0; i<bestLabels.size(); i++)
+		cout << names[i] << " = " << bestLabels[i] << endl;*/
 
 	/*for(int i=0; i<bestCenters.rows; i++)
 	{
