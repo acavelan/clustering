@@ -26,6 +26,9 @@ run-means: means
 run-sift: sift
 	./sift data/img*.jpg
 
-clean:
+cleanfiles:
+	$(RM) dictionary.yml data/*.yml data2/*.yml
+
+clean: cleanfiles
 	$(RM) means sift src/*.o $(NONFREE)/*.o dictionary.yml data/*.yml
 
