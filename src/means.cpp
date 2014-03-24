@@ -59,14 +59,14 @@ void createDescriptors(const vector<string> &files, vector<vector<float>> &descr
 		for(auto& file : files)
 		{        
 		    //open the file
-		    input = imread(file, CV_LOAD_IMAGE_GRAYSCALE); //Load as grayscale                
+		    input = imread(file, CV_LOAD_IMAGE_GRAYSCALE); //Load as grayscale
 		    //detect feature points
 		    detector.detect(input, keypoints);
 		    //compute the descriptors for each keypoint
 		    detector.compute(input, keypoints,descriptor);        
 		    //put the all feature descriptors in a single Mat object 
-		    featuresUnclustered.push_back(descriptor);        
-		}    
+		    featuresUnclustered.push_back(descriptor);
+		}
 
 		//Construct BOWKMeansTrainer
 		//the number of bags
@@ -340,8 +340,32 @@ int main(int argc, char** argv)
 	    cout << endl;
 	}*/
 
+    for(unsigned int i=0; i<bestLabels.size(); i++)
+        cout << names[i] << " = " << bestLabels[i] << endl;
+
     cout << "Done." << endl;
 
+
+    // ACP et affichage
+/*
+    Mat drawing = Mat::zeros(768, 1024, CV_8UC3);
+    vector<vector<vector<double, 7>>> huList;
+
+    auto pointGroupList = pca2D(huList);
+    auto boundingBox = makeBoundingBox(pointGroupList);
+
+    cout << "Colors:" << endl;
+    for(auto& pointList : pointGroupList)
+    {
+        Scalar color = Scalar(1, 1, 1);
+        showPoints(pointList, color, drawing, boundingBox);
+        cout << "\t" << color << endl;
+    }
+
+    namedWindow("2DPointView", CV_WINDOW_AUTOSIZE);
+    imshow("2DPointView", drawing);
+    waitKey(0);
+*/
     return 0;
 }
 
