@@ -351,6 +351,11 @@ cout << featureCount << endl;
 	    }
 	}
 
+
+    // Renomage des classe (0..(n-1) => 1..n)
+    for(int& label : resultLabels)
+        label++;
+
 	cout << "BEST RESULT: " << best << "%" << endl;
 
 	// Affiche la base de données
@@ -360,7 +365,7 @@ cout << featureCount << endl;
 	    printf("Cluster[%d].size = %zu\n", i+1, bestClusters[i].size());
 
 	for(unsigned int i=0; i<resultLabels.size(); i++)
-		cout << names[i] << " = " << resultLabels[i]+1 << endl;
+		cout << names[i] << " = " << resultLabels[i] << endl;
 
 	/*for(int i=0; i<resultCenters.rows; i++)
 	{
@@ -371,6 +376,13 @@ cout << featureCount << endl;
 	}*/
 
     cout << "Done." << endl;
+
+
+    // Calcul de l'indice de Rand
+
+    float indice = randIndex(names, resultLabels, expetectedLabels);
+
+    cout << "Rand index: " << indice << endl;
 
 
     // ACP et affichage

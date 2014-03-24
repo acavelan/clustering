@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <set>
 
 
 using namespace std;
@@ -148,6 +149,69 @@ vector<vector<Point2f>> pca2DList(vector<vector<vector<float>>> descriptorGroupL
     }
 
     return result;
+}
+
+
+set<int> toSet(vector<int> resultLabels)
+{
+    set<int> classList;
+
+    for(int label : resultLabels)
+        classList.insert(label);
+
+    return classList;
+}
+
+
+float randIndex(vector<string> names, vector<int> resultLabels, vector<int> expectedLabels)
+{
+    auto setResults = toSet(resultLabels);
+    auto setExpected = toSet(expectedLabels);
+
+    if(setResults != setExpected)
+    {
+        cerr << "Assertion error: the number of classes differs between resultLabels and expectedLabels" << endl;
+        
+        cout << "resultLabels classes:" << endl;
+        for(int e : setResults)
+            cout << e << " ";
+        cout << endl;
+
+        cout << "expectedLabels classes:" << endl;
+        for(int e : setExpected)
+            cout << e << " ";
+        cout << endl;
+
+        exit(1);
+    }
+
+    if(resultLabels.size() != expectedLabels.size())
+    {
+        cerr << "Assertion error: size between resultLabels and expectedLabels differs" << endl;
+        exit(1);
+    }
+
+    int a = 0, b = 0, c = 0, d = 0;
+
+    for(unsigned int i=0 ; i<resultLabels.size() ; i++)
+    {
+        for(unsigned int j=0 ; j<resultLabels.size() ; j++)
+        {
+            if(resultLabels[i] == expectedLabels[i] && resultLabels[j] == expectedLabels[j])
+                a++;
+
+            if(resultLabels[i] != expectedLabels[i] && resultLabels[j] != expectedLabels[j])
+                b++;
+
+            if(resultLabels[i] == expectedLabels[i] && resultLabels[j] != expectedLabels[j])
+                c++;
+
+            if(resultLabels[i] != expectedLabels[i] && resultLabels[j] == expectedLabels[j])
+                d++;
+        }
+    }
+
+    return float(a+b) / float(a+b+c+d);
 }
 
 

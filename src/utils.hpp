@@ -16,6 +16,7 @@ std::pair<cv::Point2f, cv::Point2f> makeBoundingBox(std::vector<std::vector<cv::
 void showPoints(std::vector<cv::Point2f> pointList, cv::Scalar color, cv::Mat drawingImage, std::pair<cv::Point2f, cv::Point2f> boundingBox);
 std::vector<cv::Point2f> pca2D(std::vector<std::vector<float>> descriptorList);
 std::vector<std::vector<cv::Point2f>> pca2DList(std::vector<std::vector<std::vector<float>>> descriptorGroupList);
+float randIndex(std::vector<std::string> names, std::vector<int> resultLabels, std::vector<int> expectedLabels);
 
 
 #endif
