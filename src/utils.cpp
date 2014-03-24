@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <stdexcept>
 
 
 using namespace std;
@@ -14,10 +13,8 @@ using namespace cv;
 
 
 // Load CSV file
-map<string, int> loadDB(const string &dbfilename)
+void loadDB(const string &dbfilename, vector<string> &files, vector<int> &expetectedLabels)
 {
-    map<string, int> DB;
-
     ifstream dbfile(dbfilename);
 
     if(dbfile.is_open())
@@ -36,34 +33,13 @@ map<string, int> loadDB(const string &dbfilename)
             int cls;
             ss >> cls;
 
-            DB[name] = cls;
+            files.push_back(name);
+            expetectedLabels.push_back(cls);
         }
         dbfile.close();
     }
-
-    return DB;
-}
-
-
-bool checkClass(const string &img, int cls)
-{
-    bool in = false;
-    try
-    {
-        static map<string, int> DB = loadDB("data/classes.csv");
-
-        in = (DB.at(img) == cls);
-    }
-    catch(out_of_range &e)
-    {
-        cout << "Out of range excpetion with " << img << endl;
-    }
-    catch(exception &e)
-    {
-        cout << e.what() << endl;
-    }
-
-    return in;
+    else
+        cout << dbfilename << " not found." << endl;
 }
 
 
@@ -115,7 +91,7 @@ void showPoints(vector<Point2f> pointList, Scalar color, Mat drawingImage, pair<
         Point2i pointPos;
         pointPos.x = 5 + int((point.x-boundingBox.first.x) / (boundingBox.second.x-boundingBox.first.x) * (drawingImage.cols-10) + 0.5);
         pointPos.y = drawingImage.rows - (5 + int((point.y-boundingBox.first.y) / (boundingBox.second.y-boundingBox.first.y) * (drawingImage.rows-10) + 0.5));
-        circle(drawingImage, pointPos, 1, color, -1, 8);
+        circle(drawingImage, pointPos, 2, color, -1, 8);
         //cout << pointPos.x << " " << pointPos.y << endl;
     }
 }

@@ -178,7 +178,7 @@ void showDescriptors(const vector<string> &names, const vector<vector<float>> &d
 
 float distance(const vector<float> &v1, const vector<float> &v2)
 {
-    float sum = 0;
+    float sum = 0.0f;
 
     for(unsigned int i=0; i<v1.size(); i++)
         sum += (v1[i]-v2[i]) * (v1[i]-v2[i]);
@@ -191,10 +191,6 @@ int matchClass(vector<float> desc, Mat centers)
 	int c = 0;
 	float min = 100000.0f;
 
-	vector<float> v1;
-	for(int i=0; i<centers.rows; i++)
-    	v1.push_back(desc[i]);
-
     for(int i=0; i<centers.rows; i++)
     {
     	vector<float> v2;
@@ -202,7 +198,7 @@ int matchClass(vector<float> desc, Mat centers)
     	for(int j=0; j<centers.cols; j++)
     		v2.push_back(centers.at<float>(i, j));
     	
-    	float d = distance(v1, v2);
+    	float d = distance(desc, v2);
 
     	if(d < min)
     	{
@@ -213,29 +209,24 @@ int matchClass(vector<float> desc, Mat centers)
     return c;
 }
 
-float computeResult(const vector<string> &names, const vector<vector<float>> &descriptors, const Mat &centers, std::vector<int> &allLabels)
+void computeResult(const vector<string> &names, const vector<vector<float>> &descriptors, const Mat &centers, vector<int> &allLabels)
 {
-	int good = 0;
 	int total = names.size();
+
     for(int i=0; i<total; i++)
     {
     	string name = names[i];
         int cls = matchClass(descriptors[i], centers);
 
         allLabels.push_back(cls);
-
-    	/*if(checkClass(name, cls))
-    		good++;*/
     }
-
-    return ((float)good/total) * 100;
 }
 
 int main(int argc, char** argv)
 {
 	if(argc < 2)
 	{
-		printf("usage: %s img1 img2 ...\n", argv[0]);
+		printf("usage: %s classes.csv\n", argv[0]);
 		return 0;
 	}
 
@@ -244,21 +235,29 @@ int main(int argc, char** argv)
 	// CHARGEMENT DES DONNEES
 	// =======================
 
-	int total = argc-1;
+	cout << "Loading data ..." << endl;
 
 	vector<string> files;
 	vector<string> names;
+	vector<int> expetectedLabels;
+
+	string arg(argv[1]);
+	size_t token = arg.find_last_of("/");
+
+	string directory = arg.substr(0, token);
+	string csv = arg.substr(token+1);
+
+	loadDB(directory + "/" + csv, files, expetectedLabels);
+
+	if(files.size() == 0)
+		return 0;
+
+	names = files;
+	for(unsigned int i=0; i<files.size(); i++)
+		files[i] = directory + "/" + files[i];
 
 	int featureCount = -1;
 	vector<vector<float>> descriptors;
-
-	// Initialisation
-	cout << "Initializing ..." << endl;
-	for(int h=1 ; h<argc ; h++)
-	{
-		files.push_back(argv[h]);
-    	names.push_back(argv[h]);
-    }
 
     // DESCRIPTORS
     //=============
@@ -274,16 +273,19 @@ int main(int argc, char** argv)
 
     cout << "Training Kmeans ..." << endl;
 
-    int K = 2;				// Nombre de clusters
+    int total = files.size();
+
+    int K = 5;				// Nombre de clusters
     int attempts = 20;		// Nombre d'essais
 
     float best = 0;
-    int baseSize = total;
     int maxIter = 1;
-    Mat bestCenters;
-    vector<int> bestLabels;
+
+    Mat resultCenters;
+    vector<int> resultLabels;
     vector<vector<vector<float>>> bestClusters;
 
+    int baseSize = total;
     if(total < baseSize)
     {
         cerr << "Not enouth input pictures" << endl;
@@ -296,12 +298,17 @@ int main(int argc, char** argv)
     	vector<int> ids;
     	for(int i=0; i<baseSize; i++)
     		ids.push_back(i);
-
+cout << featureCount << endl;
 	    // Création de la matrice d'entré pour K-Means (un descripteur par ligne)
 	    Mat samples(baseSize, featureCount, DataType<float>::type);
 	    for(int i=0 ; i<baseSize ; i++)
+	    {
 	    	for(int j=0; j<featureCount; j++)
+	    	{
+	    		cout << i << endl;
 	        	samples.at<float>(i, j) = descriptors[ids[i]][j];
+	    	}
+	    }
 
 	    // KMEANS
 	    //========
@@ -330,13 +337,16 @@ int main(int argc, char** argv)
 	    //============================
 
 	    vector<int> allLabels;
-	    float result = computeResult(names, descriptors, centers, allLabels);
+	    computeResult(names, descriptors, centers, allLabels);
+
+	    // Compute validation
+	    float result = 1.0f;
 
 	    if(result >= best)
 	    {
 	    	best = result;
-	    	bestLabels = allLabels;
-	    	bestCenters = Mat(centers);
+	    	resultLabels = allLabels;
+	    	resultCenters = Mat(centers);
 	    	bestClusters = clusters;
 	    }
 	}
@@ -344,19 +354,19 @@ int main(int argc, char** argv)
 	cout << "BEST RESULT: " << best << "%" << endl;
 
 	// Affiche la base de données
-	cout << "BASE " << baseSize << ", " << 5 << " centers" << endl;
+	cout << "BASE " << baseSize << ", " << K << " centers" << endl;
 
 	for(unsigned int i=0; i<bestClusters.size(); i++)
-	    printf("Cluster[%d].size = %zu\n", i, bestClusters[i].size());
+	    printf("Cluster[%d].size = %zu\n", i+1, bestClusters[i].size());
 
-	for(unsigned int i=0; i<bestLabels.size(); i++)
-		cout << names[i] << " = " << bestLabels[i] << endl;
+	for(unsigned int i=0; i<resultLabels.size(); i++)
+		cout << names[i] << " = " << resultLabels[i]+1 << endl;
 
-	/*for(int i=0; i<bestCenters.rows; i++)
+	/*for(int i=0; i<resultCenters.rows; i++)
 	{
 	    cout << "Center[" << i << "] = ";
-	    for(int j=0; j<bestCenters.cols; j++)
-	    	cout << bestCenters.at<float>(i, j) << " ";
+	    for(int j=0; j<resultCenters.cols; j++)
+	    	cout << resultCenters.at<float>(i, j) << " ";
 	    cout << endl;
 	}*/
 
@@ -392,7 +402,7 @@ int main(int argc, char** argv)
     for(unsigned int i=0 ; i<colorList.size() ; i++)
         colorList[i] = Scalar(rand()%255, rand()%255, rand()%255);
     for(unsigned int i=0 ; i<pointList.size() ; i++)
-        showPoints({pointList[i]}, colorList[bestLabels[i]], drawing, boundingBox);
+        showPoints({pointList[i]}, colorList[resultLabels[i]], drawing, boundingBox);
 //*/
     cout << "BoundingBox:" << endl;
     cout << "\tmin = (" << boundingBox.first.x << ", " << boundingBox.first.y << ")" << endl;

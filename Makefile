@@ -6,7 +6,7 @@ SRC_NONFREE=$(wildcard $(NONFREE)/*.cpp)
 OBJ_NONFREE=$(SRC_NONFREE:.cpp=.o)
 
 
-all: means sift
+all: means
 
 src/%.o: src/%.cpp
 	$(CXX) -c $< -o $@ $(CXXFLAGS)
@@ -17,14 +17,8 @@ $(NONFREE)/%.o: $(NONFREE)/%.cpp
 means: src/means.o src/utils.o $(OBJ_NONFREE)
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
-sift: src/sift.o src/utils.o $(OBJ_NONFREE)
-	$(CXX) $^ -o $@ $(LDFLAGS)
-
 run-means: means
 	./means data/img*.jpg
-
-run-sift: sift
-	./sift data/img*.jpg
 
 cleanfiles:
 	$(RM) dictionary.yml data/*.yml data2/*.yml

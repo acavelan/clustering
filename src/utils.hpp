@@ -9,8 +9,8 @@
 #include <map>
 
 
-std::map<std::string, int> loadDB(const std::string &dbfilename);
-bool checkClass(const std::string &img, int cls);
+void loadDB(const std::string &dbfilename, std::vector<std::string> &files, std::vector<int> &expetectedLabels);
+
 std::pair<cv::Point2f, cv::Point2f> makeBoundingBox(std::vector<cv::Point2f> pointList);
 std::pair<cv::Point2f, cv::Point2f> makeBoundingBox(std::vector<std::vector<cv::Point2f>> pointGroupList);
 void showPoints(std::vector<cv::Point2f> pointList, cv::Scalar color, cv::Mat drawingImage, std::pair<cv::Point2f, cv::Point2f> boundingBox);
