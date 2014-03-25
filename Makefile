@@ -17,10 +17,10 @@ $(NONFREE)/%.o: $(NONFREE)/%.cpp
 mean: src/descriptors.o src/utils.o
 	$(CXX) -o bin/$@ src/main.cpp $^ $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=meanDescriptor
 
-sift: src/descriptors.o src/utils.o
+sift: src/descriptors.o src/utils.o $(OBJ_NONFREE)
 	$(CXX) -o bin/$@ src/main.cpp $^ $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=siftDescriptor
 
-surf: src/descriptors.o src/utils.o
+surf: src/descriptors.o src/utils.o $(OBJ_NONFREE)
 	$(CXX) -o bin/$@ src/main.cpp $^ $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=surfDescriptor
 
 dirs:
