@@ -1,0 +1,126 @@
+\documentclass[12pt,a4paper,utf8x]{article}
+
+\usepackage[frenchb]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[final]{pdfpages} 
+
+% Pour pouvoir utiliser 
+\usepackage{ucs}
+\usepackage{graphicx}
+\usepackage[utf8x]{inputenc}
+
+% Pour avoir de belles url
+\usepackage{url}
+
+\usepackage {geometry}
+
+% Pour mettre du code source
+\usepackage {listings}
+\usepackage{verbatim}
+\usepackage{fancyvrb}
+\usepackage{minted}
+
+% Pour pouvoir passer en paysage
+\usepackage{lscape}
+
+% Pour pouvoir faire plusieurs colonnes
+\usepackage {multicol}
+\usepackage{pifont}
+
+\usepackage{float}
+\restylefloat{figure}
+
+% Pour les entetes de page
+%\usepackage{fancyheadings}
+%\pagestyle{fancy}
+%\renewcommand{\sectionmark}[1]{\markboth{#1}{}} 
+%\renewcommand{\subsectionmark}[1]{\markright{#1}} 
+
+% Pour l'interligne de 1.5
+\usepackage {setspace}
+% Pour les marges de la page
+\geometry{a4paper, top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm, marginparwidth=1.2cm}
+
+\parskip=5pt %% distance entre § (paragraphe)
+\sloppy %% respecter toujours la marge de droite 
+
+% Pour les pénalités :
+\interfootnotelinepenalty=150 %note de bas de page
+\widowpenalty=150 %% veuves et orphelines
+\clubpenalty=150 
+
+%Pour la longueur de l'indentation des paragraphes
+\setlength{\parindent}{15mm}
+
+%%%% debut macro pour enlever le nom chapitre %%%%
+\makeatletter
+\def\@makechapterhead#1{%
+ % \vspace*{30\p@}%
+  {\parindent \z@ \raggedright \normalfont
+    \interlinepenalty\@M
+    \ifnum \c@secnumdepth >\m@ne
+        \Huge\bfseries \thechapter\quad
+    \fi
+    \Huge \bfseries #1\par\nobreak
+    \vskip 20\p@
+  }}
+
+\def\@makeschapterhead#1{%
+%  \vspace*{30\p@}%
+  {\parindent \z@ \raggedright
+    \normalfont
+    \interlinepenalty\@M
+    \Huge \bfseries  #1\par\nobreak
+    \vskip 20\p@
+  }}
+\makeatother
+%%%% fin macro %%%%
+
+\lstset{
+basicstyle=\footnotesize,
+numbers=left,
+numberstyle=\normalsize,
+breaklines=true,  
+numbersep=7pt,
+frame=single, 
+}
+
+\fvset{
+frame=single,
+fontsize==\footnotesize , 
+numbers=left,
+}
+
+%Couverture 
+
+\begin{document}
+
+\begin{titlepage}
+\hfill
+  \begin{center}
+    \begin{minipage}[t]{12cm} 
+    \huge \center Réalisation d'une visualisation de molécules à base de shaders GLSL
+    \huge \center Visualisation Avancée
+    \huge \center Mars 2014
+    \end{minipage}
+  \end{center}
+\vfill
+\begin{flushleft}
+\begin{minipage}[t]{5cm}
+Master 2 VIP, \\ Aurélien Cavelan
+\end{minipage}
+\end{flushleft}
+
+\end{titlepage}
+%\clearpage
+
+\section{Objectifs}
+
+L'objectif de ce mini projet consiste à développer un système de classification automatique non supervisée de photos. Le système dispose initialement de photos annotées en cinq classes (que vous découvrirez aisément), fournies par l'enseignant, et comportant quelques pièges. Chaque photo se rattache à une seule classe. A partir de cet ensemble de photos annotées, le système doit extraire des descripteurs et proposer une classification non supervisée des images (clustering).
+
+\section{}
+
+  
+\end{document}
+
+    
