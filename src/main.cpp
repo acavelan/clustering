@@ -1,6 +1,9 @@
 #include "utils.hpp"
 #include "descriptors.hpp"
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/flann/flann.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/nonfree/features2d.hpp>
 
@@ -11,6 +14,8 @@
 #include <vector>
 #include <array>
 #include <ctime>
+
+#define USE_KMEANS 1
 
 using namespace cv;
 using namespace std;
@@ -128,8 +133,8 @@ int main(int argc, char** argv)
 
     int total = files.size();
 
-    int K = clusters;		// Nombre de clusters
-    int attempts = 10;		// Nombre d'essais
+    // Nombre de clusters
+    int K = clusters;
 
     float best = 0.0f;
     int maxIter = 500;
@@ -160,32 +165,44 @@ int main(int argc, char** argv)
 
 	    // KMEANS
 	    //========
-	    Mat labels, centers;	// Sorties
+	    Mat labels, centers;
 
-	    // Critère d'arrêt fixé à 100 itération max avec une précision de 1.0
-	    TermCriteria termCriteria(CV_TERMCRIT_EPS|CV_TERMCRIT_ITER, 250, 0.001);
+        #if USE_KMEANS == 1
+            // Nombre d'essais
+            int attempts = 10;
+    	    // Critère d'arrêt fixé à 100 itération max avec une précision de 1.0
+    	    TermCriteria termCriteria(CV_TERMCRIT_EPS|CV_TERMCRIT_ITER, 250, 0.001);
 
-	    //printf("Running kmeans ...\n");
-	    kmeans(samples, K, labels, termCriteria, attempts, KMEANS_RANDOM_CENTERS, centers);
+    	    kmeans(samples, K, labels, termCriteria, attempts, KMEANS_RANDOM_CENTERS, centers);
+        #else
+            cvflann::KMeansIndexParams kmean_params(2, 100, cvflann::FLANN_CENTERS_KMEANSPP);
 
-	    vector<vector<vector<float>>> clusters(K);
-	    for(int i=0; i<labels.rows; i++)
-	    {
-	    	int label = labels.at<int>(i, 0);
-	    	vector<float> features;
-	    	for(int j=0; j<featureCount; j++)
-	    	{
-	        	float feature = samples.at<float>(label, j);
-	        	features.push_back(feature);
-	        }
-	        clusters[label].push_back(features);
-	    }
+            centers = Mat(K, featureCount, DataType<float>::type);
+
+            int count = flann::hierarchicalClustering<flann::L2<float>>(samples, centers, kmean_params);
+
+            // since you get less clusters than you specified we can also truncate our matrix. 
+            centers = centers.rowRange(cv::Range(0, count));
+        #endif
 
 	    // VERIFICATION DES RESULTATS
 	    //============================
 
 	    vector<int> allLabels;
 	    computeResult(names, descriptors, centers, allLabels);
+
+        vector<vector<vector<float>>> clusters(K);
+        for(unsigned int i=0; i<allLabels.size(); i++)
+        {
+            vector<float> features;
+            int label = allLabels[i];
+            for(int j=0; j<featureCount; j++)
+            {
+                float feature = samples.at<float>(label, j);
+                features.push_back(feature);
+            }
+            clusters[label].push_back(features);
+        }
 
 	     // Renomage des classe (0..(n-1) => 1..n)
     	for(int& label : allLabels)
@@ -223,11 +240,11 @@ int main(int argc, char** argv)
 
 //*
     auto pointList = pca2D(descriptors);
-//*
-    //vector<Point2f> pointList;
+/*
+    vector<Point2f> pointList;
     for(auto& desc : descriptors)
         pointList.push_back(Point2f(desc[0], desc[1]));
-//*
+*/
     auto boundingBox = makeBoundingBox(pointList);
 //*
     // Affichage des couleurs en fonction des groupes réels
