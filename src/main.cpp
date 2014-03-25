@@ -240,11 +240,11 @@ int main(int argc, char** argv)
 
 //*
     auto pointList = pca2D(descriptors);
-//*
-    //vector<Point2f> pointList;
+/*
+    vector<Point2f> pointList;
     for(auto& desc : descriptors)
         pointList.push_back(Point2f(desc[0], desc[1]));
-//*
+*/
     auto boundingBox = makeBoundingBox(pointList);
 //*
     // Affichage des couleurs en fonction des groupes réels
