@@ -55,7 +55,7 @@ void siftDescriptor(const vector<string> &files, vector<vector<float>> &descript
 		    if(input.rows == 0)
 		    {
 		    	cout << "Image: " << file << " not found" << endl;
-		    	break;
+		    	exit(1);
 		    }
 
 		    //detect feature points
@@ -120,7 +120,7 @@ void siftDescriptor(const vector<string> &files, vector<vector<float>> &descript
 	        if(src.rows == 0)
 		    {
 		    	cout << "Image: " << file << " not found" << endl;
-		    	break;
+		    	exit(1);
 		    }
 
 	        vector<KeyPoint> keypoints;        
@@ -186,7 +186,7 @@ void surfDescriptor(const vector<string> &files, vector<vector<float>> &descript
 		    if(input.rows == 0)
 		    {
 		    	cout << "Image: " << file << " not found" << endl;
-		    	break;
+		    	exit(1);
 		    }
 
 		    //detect feature points
@@ -251,7 +251,7 @@ void surfDescriptor(const vector<string> &files, vector<vector<float>> &descript
 	        if(src.rows == 0)
 		    {
 		    	cout << "Image: " << file << " not found" << endl;
-		    	break;
+		    	exit(1);
 		    }
 
 	        vector<KeyPoint> keypoints;        
