@@ -15,7 +15,7 @@
 #include <array>
 #include <ctime>
 
-#define USE_KMEANS 1
+#define USE_KMEANS 0
 
 using namespace cv;
 using namespace std;
