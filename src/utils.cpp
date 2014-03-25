@@ -197,17 +197,20 @@ float randIndex(vector<string> names, vector<int> resultLabels, vector<int> expe
     {
         for(unsigned int j=0 ; j<resultLabels.size() ; j++)
         {
-            if(resultLabels[i] == expectedLabels[i] && resultLabels[j] == expectedLabels[j])
-                a++;
+            if(i != j)
+            {
+                if(resultLabels[i] == resultLabels[j] && expectedLabels[i] == expectedLabels[j])
+                    a++;
 
-            if(resultLabels[i] != expectedLabels[i] && resultLabels[j] != expectedLabels[j])
-                b++;
+                if(resultLabels[i] != resultLabels[j] && expectedLabels[i] != expectedLabels[j])
+                    b++;
 
-            if(resultLabels[i] == expectedLabels[i] && resultLabels[j] != expectedLabels[j])
-                c++;
+                if(resultLabels[i] == resultLabels[j] && expectedLabels[i] != expectedLabels[j])
+                    c++;
 
-            if(resultLabels[i] != expectedLabels[i] && resultLabels[j] == expectedLabels[j])
-                d++;
+                if(resultLabels[i] != resultLabels[j] && expectedLabels[i] == expectedLabels[j])
+                    d++;
+            }
         }
     }
 

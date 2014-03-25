@@ -6,23 +6,29 @@ SRC_NONFREE=$(wildcard $(NONFREE)/*.cpp)
 OBJ_NONFREE=$(SRC_NONFREE:.cpp=.o)
 
 
-all: means
+all: dirs mean sift surf
 
 src/%.o: src/%.cpp
-	$(CXX) -c $< -o $@ $(CXXFLAGS)
+	$(CXX) -c $^ -o $@ $(CXXFLAGS)
 
 $(NONFREE)/%.o: $(NONFREE)/%.cpp
-	$(CXX) -c $< -o $@ $(CXXFLAGS)
+	$(CXX) -c $^ -o $@ $(CXXFLAGS)
 
-means: src/means.o src/utils.o $(OBJ_NONFREE)
-	$(CXX) $^ -o $@ $(LDFLAGS)
+mean: src/descriptors.o src/utils.o
+	$(CXX) -o bin/$@ src/main.cpp $^ $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=meanDescriptor
 
-run-means: means
-	./means data/img*.jpg
+sift: src/descriptors.o src/utils.o
+	$(CXX) -o bin/$@ src/main.cpp $^ $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=siftDescriptor
+
+surf: src/descriptors.o src/utils.o
+	$(CXX) -o bin/$@ src/main.cpp $^ $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=surfDescriptor
+
+dirs:
+	mkdir -p bin
 
 cleanfiles:
-	$(RM) dictionary.yml data/*.yml data2/*.yml
+	$(RM) *.yml data/*.yml data2/*.yml
 
 clean: cleanfiles
-	$(RM) means sift src/*.o $(NONFREE)/*.o dictionary.yml data/*.yml
+	$(RM) bin/mean bin/sift bin/surf src/*.o $(NONFREE)/*.o
 
