@@ -137,7 +137,7 @@ int main(int argc, char** argv)
     int K = clusters;
 
     float best = 0.0f;
-    int maxIter = 500;
+    int maxIter = 1000;
 
     Mat resultCenters;
     vector<int> resultLabels;

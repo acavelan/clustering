@@ -1,5 +1,6 @@
 #include "descriptors.hpp"
 
+#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/nonfree/features2d.hpp>
 
@@ -7,6 +8,12 @@
 
 using namespace std;
 using namespace cv;
+
+void preprocess(Mat &image)
+{
+	//blur(image, image, Size(3,3));
+    //Canny(image, image, 60, 60*3, 3);
+}
 
 void meanDescriptor(const vector<string> &files, vector<vector<float>> &descriptors, int &featureCount)
 {
@@ -51,6 +58,8 @@ void siftDescriptor(const vector<string> &files, vector<vector<float>> &descript
 		{
 		    //open the file
 		    input = imread(file, CV_LOAD_IMAGE_GRAYSCALE); //Load as grayscale                
+
+		    preprocess(input);
 
 		    if(input.rows == 0)
 		    {
@@ -116,6 +125,8 @@ void siftDescriptor(const vector<string> &files, vector<vector<float>> &descript
     	if(descf.isOpened() == false)
     	{
 	        Mat src = imread(file, CV_LOAD_IMAGE_GRAYSCALE);
+
+	        preprocess(src);
 
 	        if(src.rows == 0)
 		    {

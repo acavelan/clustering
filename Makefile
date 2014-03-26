@@ -6,7 +6,7 @@ SRC_NONFREE=$(wildcard $(NONFREE)/*.cpp)
 OBJ_NONFREE=$(SRC_NONFREE:.cpp=.o)
 PROG_OBJ=src/descriptors.o src/utils.o $(OBJ_NONFREE)
 
-all: bin/mean bin/sift bin/surf
+all: mean sift surf
 
 src/%.o: src/%.cpp
 	$(CXX) -c $^ -o $@ $(CXXFLAGS)
@@ -14,14 +14,14 @@ src/%.o: src/%.cpp
 $(NONFREE)/%.o: $(NONFREE)/%.cpp
 	$(CXX) -c $^ -o $@ $(CXXFLAGS)
 
-bin/mean: $(PROG_OBJ) bin
-	$(CXX) -o $@ src/main.cpp $(PROG_OBJ) $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=meanDescriptor
+mean: $(PROG_OBJ) bin
+	$(CXX) -o bin/$@ src/main.cpp $(PROG_OBJ) $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=meanDescriptor
 
-bin/sift: $(PROG_OBJ) bin
-	$(CXX) -o $@ src/main.cpp $(PROG_OBJ) $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=siftDescriptor
+sift: $(PROG_OBJ) bin
+	$(CXX) -o bin/$@ src/main.cpp $(PROG_OBJ) $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=siftDescriptor
 
-bin/surf: $(PROG_OBJ) bin
-	$(CXX) -o $@ src/main.cpp $(PROG_OBJ) $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=surfDescriptor
+surf: $(PROG_OBJ) bin
+	$(CXX) -o bin/$@ src/main.cpp $(PROG_OBJ) $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=surfDescriptor
 
 bin:
 	mkdir -p bin
