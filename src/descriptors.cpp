@@ -281,7 +281,7 @@ void surfDescriptor(const vector<string> &files, vector<vector<float>> &descript
 			descf["image"] >> bowDescriptor;
 			descf.release(); 
 		}
-	    
+
 	    vector<float> features;
 		for(int i=0; i<bowDescriptor.cols; i++)
 			features.push_back(bowDescriptor.at<float>(0, i));
@@ -297,4 +297,58 @@ void surfDescriptor(const vector<string> &files, vector<vector<float>> &descript
     }
 
     featureCount = dictionary.rows;
+}
+
+
+void huMomentsDescriptor(const vector<string>& files, vector<vector<float>>& descriptors, int& featureCount)
+{
+    descriptors.clear();
+
+    for(string file : files)
+    {
+        Mat src = imread(file);
+
+        if(src.rows == 0)
+        {
+            cout << "Image: " << file << " not found" << endl;
+            exit(1);
+        }
+
+        /// Convertie l'image en gris et fait un flou gaussien
+        Mat srcGray;
+        cvtColor(src, srcGray, CV_BGR2GRAY);
+        blur(srcGray, srcGray, Size(3, 3));
+
+        // Détecte les contours avec Canny
+        Mat cannyOutput;
+        const int thresh = 128;
+        Canny(srcGray, cannyOutput, thresh, thresh*2, 3);
+
+        // Trouve les différents contours
+        vector<vector<Point>> contours;
+        vector<Vec4i> hierarchy;
+        findContours(cannyOutput, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+
+        // Récupère les moments de chaque contour
+        vector<Moments> mu(contours.size());
+        for(unsigned int i=0 ; i<contours.size() ; i++)
+            mu[i] = moments(contours[i]);
+
+        // Calcul 7 invariants de Hu pour chaque contour (descripteurs d'un contour)
+        vector<array<double, 7>> hu(mu.size());
+        for(unsigned int i=0 ; i<mu.size() ; i++)
+            HuMoments(mu[i], hu[i].data());
+
+        vector<float> tmp(7);
+
+        for(auto huElement : hu)
+        {
+            for(unsigned int j=0 ; j<tmp.size() ; j++)
+                tmp[j] = float(huElement[j]);
+
+            descriptors.push_back(tmp);
+        }
+    }
+
+    featureCount = 7;
 }

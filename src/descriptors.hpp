@@ -12,4 +12,6 @@ void siftDescriptor(const std::vector<std::string> &files, std::vector<std::vect
 
 void surfDescriptor(const std::vector<std::string> &files, std::vector<std::vector<float>> &descriptors, int &featureCount);
 
+void huMomentsDescriptor(const std::vector<std::string> &files, std::vector<std::vector<float>> &descriptors, int &featureCount);
+
 #endif
