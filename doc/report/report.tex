@@ -158,6 +158,8 @@ L'objectif de ce mini projet consiste à développer un système de classificati
 
     Un certain nombre de données sont sauvegardés au format yml lors de l'exécution, tels que les descripteurs de SURF et de SIFT ainsi que le dicionnaire (Bag of Words) associé. Ils peuvent ainsi être réutilisé par OpenCV pour éviter de reclaculer l'ensemble des descripteurs, ce qui peut prendre plus d'une minute.
 
+    [PARLER DE NONFREE]
+
 
 \chapter{Descripteurs}
     Nous avons implémenté plusieurs descripteurs, certains très simple (et peu efficaces), et d'autres plus complexes mais aussi plus performants. Nous avons comparés ces descripteurs selon plusieurs critères, en comparant les résultats obtenus avec l'Algorithme des K-Moyennes et la classification hiérarchique, mais aussi leur résistances à diverses transformations ou encore leur performance.
@@ -167,7 +169,12 @@ L'objectif de ce mini projet consiste à développer un système de classificati
         [variance]
 
     \section{Moments de Hu}
-        [Fonctionne pas sans contours]
+
+        Les moments de Hu sont l'un des premiers déscripteurs avancés que nous avons utilisés. Nous nous sommes dit que l'analyse des formes présentes dans les images pourrait permettre ensuite de créer des descripteurs efficaces afin d'obtenir une bonne classification. En effet, on peut voir que les images du jeu de données mis à disposition contiennent des éléments distinguables par leur forme notamment les buildings (rectangles) et les pyramides (triangles), bicycles (cercles). Nous avons eu quelques difficultés à faire de la classification avec les descripteurs générés par les moments de Hu car cet algorithme génère plusieurs descripteurs par image. Chaque descripteur est alors associé à des formes détectées dans l'image. Notre idée a été de classifier tous les descripteurs de toutes les images et d'associer une classe à chacune. Le sens des classes pourrait ainsi être "être un carré" ou "être un cercle". Ensuite, pour chaque image, on regarde quelle classe est dominante dans tous ses descripteurs et on lui affecte cette classe. Une image contenant alors plein de triangle et peu de carrés est classée comme contenant des triangles.
+
+        Bien que l'idée nous semblait prometteuse, les premiers résultats n'étaient pas très encourageants et cela était le reflet de multiples problèmes. En effet, nous avons constaté que la détection de contours qui précède les moments de Hu ne donne pas de très bons résultats (algorithme Canny précédé d'un flou gaussien). Il est donc difficile pour les moments de Hu de générer de bons descripteurs à partir de résultats difficilement exploitables. Afin de voir ce qui se passe lorsque le filtre de Canny donne de bons résultats, nous avons mis au point un autre jeu de données contenant des images avec des cercles des rectangles et des étoiles à classer en 3 catégories et les résultats étaient radicalement différents. En effet, l'ACP nous montre que cela donne 3 groupes de points très denses dans chaque groupe. Sur un autre jeu de données, contenant des images avec des cercles et des carrées de tailles différentes (2 classes), les résultats montraient globalement deux classes mais elles étaient difficiles à discerner, car bien que les données soient pratiquement linéairement séparables, la densité des deux groupes de points formés est très hétérogène et la classification en utilisant l'algorithme Kmeans ne pouvait pas donner des résultats satisfaisants.
+
+        On peut donc dire que les moments de Hu ne sont pas bien adaptés au problème car les images traitées sont complexes induisant une mauvaise détection de contours et les descripteurs générés par l'algorithme ne sont pas directement viables pour être utilisé avec Kmeans ou même un dendrogramme. Nous pensons que si l'apprentissage avait été supervisé et avec un jeu de données plus simple, l'utilisation d'un SVM comme classifieurs des descripteurs d'image générée par les moments de Hu aurait donné des résultats prometteurs.
 
     \section{SIFT / SURF}
         [Décrire le principe de fonctionnement]
