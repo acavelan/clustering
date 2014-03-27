@@ -164,7 +164,7 @@ L'objectif de ce mini projet consiste à développer un système de classificati
     Nous choisissons ensuite des images aléatoirement, par exemple 10 sur 50 que nous allons séparer en cinq classes à l'aide d'un dendrograme ou de kmeans. Les cinq centres obtenus sont sauvegardés.
 
     Nous prenons ensuite les descripteurs de toutes les images restantes et nous les associons ou centre le plus proche afin de réapartir toutes les images dans les cinq classes. La qualité de la distribution est mesurée avec l'indice de Rand. Nous répétons cette opération plusieurs fois jusu'à obtenir les cinq centres qui donnent les meilleurs résultats.
-    
+
 
 \chapter{Descripteurs}
     Nous avons implémenté plusieurs descripteurs, certains très simple (et peu efficaces), et d'autres plus complexes mais aussi plus performants. Nous avons comparés ces descripteurs selon plusieurs critères, en comparant les résultats obtenus avec l'Algorithme des K-Moyennes et la classification hiérarchique, mais aussi leur résistances à diverses transformations ou encore leur performance.
@@ -185,7 +185,7 @@ L'objectif de ce mini projet consiste à développer un système de classificati
 
         Le principe consiste à se servir de ces points pour constituer un dictionnaire de mot visuels. On commence par choisir des images pour lesquelles on extrait des points clés (bag of words). A l'aide d'un algorithme de clustering comme kmeans, on va ensuite extraire les points les plus représentatif (centres) parmis tous les points obtenus afin de créer un dictionnaire. Comme cette procédure peut prendre du temps (1 à 2 minutes pour SIFT, 30 secondes pour SURF), on enregistre le dictionnaire dans un fichier au format yml. Si ce fichier existe, notre programme va directement charger le dictionnaire existant pour effectuer la classification.
 
-        Grâce au dictionnaire, on peut maintenant calculer pour chaque image un histogramme qui correspond à la distribution des mots du dictionnaire pour cette image (ensemble de nombre floatants entre 0 et 1). On peut aussi voir cet histogramme comme la contribution de chaque \textit{mots} du dictionnaire dans la description de l'image. Plus un \texit{mot} est apte à décrire l'image, plus la valeur qui lui est associé est élévée. L'histogramme est normalisé et peut donc être utilisé comme descripteur.
+        Grâce au dictionnaire, on peut maintenant calculer pour chaque image un histogramme qui correspond à la distribution des mots du dictionnaire pour cette image (ensemble de nombre floatants entre 0 et 1). On peut aussi voir cet histogramme comme la contribution de chaque \textit{mots} du dictionnaire dans la description de l'image. Plus un \textit{mot} est apte à décrire l'image, plus la valeur qui lui est associé est élévée. L'histogramme est normalisé et peut donc être utilisé comme descripteur.
 
 
 \chapter{Résultats}
@@ -196,12 +196,12 @@ L'objectif de ce mini projet consiste à développer un système de classificati
         \hline
         Descripteurs & Pré-traitement & Rand \\
         \hline
-          Moyenne & -      & 0.65\\
-          Gabor & -      & 0.67\\
-          SURF  &   blur + canny & 0.66\\
-          SIFT  & blur + canny & 0.68\\
-          SURF  &   -        & 0.72\\
-          SIFT  & -      & 0.78\\
+          Moyenne & -             & 0.65\\
+          Gabor   & -             & 0.67\\
+          SURF    & blur + canny  & 0.66\\
+          SIFT    & blur + canny  & 0.68\\
+          SURF    & -             & 0.72\\
+          SIFT    & -             & 0.78\\
         \hline  
       \end{tabular}
 \end{figure}
