@@ -141,7 +141,7 @@ L'objectif de ce mini projet consiste à développer un système de classificati
 
     Le couple C++ OpenCV est probablement l'un des choix les plus courant pour la tâche qui nous est donnée. OpenCV est une bibliothèque très performante, bien qu'elle soit moins accessible que les options précédentes. On trouve néanmoins de nombreux exemples de codes utilisant OpenCV, et notamment pour lire des images, appliquer des filtres, extraire des descripteurs, ou encore utiliser l'algorithme des K-Moyennes ou la classification hiérarchique. C'est donc sur cette base que nous avons décidé de partir.
 
-    Dans un premier temps nous avons décidé d'implémenter un descripteur "moyenne de niveau de gris" car c'est un descripteur a une seule dimension et il est donc facile de vérifier les résultats de l'algorithmes K-Moyennes. Nous avons également créé des jeux de données plus simples disponibles dans data2, data3 et data4 afin de comparer plus simplement les descripteurs. Dans un deuxième temps nous avons implémenté les Moments de Hu, Sift et Surf.
+    Dans un premier temps nous avons décidé d'implémenter un descripteur "moyenne de niveau de gris" car c'est un descripteur a une seule dimension et il est donc facile de vérifier les résultats de l'algorithmes K-Moyennes. Nous avons également créé des jeux de données plus simples disponibles dans data2, data3 et data4 afin de comparer plus simplement les descripteurs. Par la suite nous avons implémenté d'autres descripteurs comme les Moments de Hu, Sift ou encore Surf, et nous avons utilisé différents paramètres ainsi que différentes méthodes de classifications.
 
 
 \section{Architecture}
@@ -170,7 +170,7 @@ L'objectif de ce mini projet consiste à développer un système de classificati
     Nous avons implémenté plusieurs descripteurs, certains très simple (et peu efficaces), et d'autres plus complexes mais aussi plus performants. Nous avons comparés ces descripteurs selon plusieurs critères, en comparant les résultats obtenus avec l'Algorithme des K-Moyennes et la classification hiérarchique, mais aussi leur résistances à diverses transformations ou encore leur performance.
 
     \section{Descripturs 1D}
-        Nous avons implémenté des descripteurs 1D très simples, principalement pour tester la validité de notre code et pour avoir un indice de référence. Comme nous nous y attendions, la classification est médiocre.
+        Nous avons implémenté des descripteurs 1D très simples, principalement pour tester la validité de notre code et pour avoir un indice de référence. Comme nous nous y attendions, la classification est médiocre. Nous nous sommes également intéressé au filtre de Gabor, mais celui-ci n'est pas adapté aux images complexes et son utilisé réside principalement dans l'analyse de textures.
 
     \section{Moments de Hu}
 
@@ -191,20 +191,44 @@ L'objectif de ce mini projet consiste à développer un système de classificati
 \chapter{Résultats}
 
 \section{Comparaisons}
+  Ci-dessous les mesure de l'indexe de Rand obtenu avec différents descripteurs et différents paramètres sur les 50 images fournies. Ces images sont difficiles mais SIFT et SURF permettent d'obtenir d'assez bon résultats. Il n'est pas rare qu'une image soit assez différente de toutes les autres et que kmeans en fasse une seule classe (ne laissant que quatre classes pour les autres images). De plus on peut parfois comprendre la cause d'une erreur, comme un beateau pouvant être facilement confondu avec une piramide à cause de ses lignes et de ses angles.
+
   \begin{figure}[!h]
-        \centering
-        \begin{tabular}{ | l | c | l | }
+      \centering
+        \begin{tabular}{ | l | c | l | l |}
           \hline
-          Descripteurs & Pré-traitement & Rand \\
+          Descripteurs & Pré-traitement & Algorithme & Rand \\
           \hline
-            Moyenne & -             & 0.65\\
-            Gabor   & -             & 0.67\\
-            SURF    & blur + canny  & 0.66\\
-            SIFT    & blur + canny  & 0.68\\
-            SURF    & -             & 0.72\\
-            SIFT    & -             & 0.78\\
+            Moyenne & -             & kmeans/hiérarchique   & 0.65\\
+            Gabor   & -             & kmeans/hiérarchique   & 0.67\\
+            SURF    & blur + canny  & kmeans/hiérarchique   & 0.66\\
+            SIFT    & blur + canny  & kmeans/hiérarchique   & 0.68\\
+            SURF    & -             & kmeans                & 0.70\\
+            SIFT    & -             & kmeans                & 0.75\\
+            SURF    & -             & hiérarchique          & 0.72\\
+            SIFT    & -             & hiérarchique          & 0.78\\
           \hline  
         \end{tabular}
+    \caption{Mesure de l'indexe de Rand sur les 50 images fournies}
+  \end{figure}
+
+  Afin de pouvoir distinguer les algorithmes de manière plus claire, nous avons mis en place deux jeux de données. le premier est constituée de forme simples comme des cercles, des rectangles et des étoiles, avec des translations et des rotations. Sur ce jeu de donnée, on remarque que SIFT et SURF obtiennent d'excellent résultats, mais la moyenne également car la forme est simple et se trouve sur un fond unicolor. Nous avons donc créer un jeu de donner réel composé d'images de chiens et de roses. Les résultats sont parlant, SIFT et SURF obtiennent une classification presque parfaite, tandis que les autres techniques que nous avons vues ne donnent aucun résultats.
+
+  \textbf{Note : } les images se trouvent dans les dossiers data.
+
+  \begin{figure}[!h]
+      \centering
+        \begin{tabular}{ | l | c | l | l |}
+          \hline
+          Descripteurs & Pré-traitement & Algorithme & Rand \\
+          \hline
+            Moyenne & -             & hiérarchique          & 0.57\\
+            Gabor   & -             & hiérarchique          & 0.52\\
+            SURF    & -             & hiérarchique          & 0.88\\
+            SIFT    & -             & hiérarchique          & 1.00\\
+          \hline  
+        \end{tabular}
+    \caption{Mesure de l'indexe de Rand sur les 50 images fournies}
   \end{figure}
 
 
