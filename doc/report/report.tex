@@ -120,7 +120,7 @@ Master 2 VIP, \\ Aurélien Cavelan et Jérôme Richard
 
 \chapter{Objectifs}
 
-L'objectif de ce mini projet consiste à développer un système de classification automatique non supervisée de photos. Le système dispose initialement de photos annotées en cinq classes (que vous découvrirez aisément), fournies par l'enseignant, et comportant quelques pièges. Chaque photo se rattache à une seule classe. A partir de cet ensemble de photos annotées, le système doit extraire des descripteurs et proposer une classification non supervisée des images (clustering).
+L'objectif de ce mini projet consiste à développer un système de classification automatique non supervisée de photos. Le système dispose initialement de photos annotées en cinq classes, fournies par l'enseignant, et comportant quelques pièges. Chaque photo se rattache à une seule classe. A partir de cet ensemble de photos annotées, le système doit extraire des descripteurs et proposer une classification non supervisée des images (clustering).
 
 
 \chapter{Choix Logiciels}
@@ -141,20 +141,17 @@ L'objectif de ce mini projet consiste à développer un système de classificati
 
     Le couple C++ OpenCV est probablement l'un des choix les plus courant pour la tâche qui nous est donnée. OpenCV est une bibliothèque très performante, bien qu'elle soit moins accessible que les options précédentes. On trouve néanmoins de nombreux exemples de codes utilisant OpenCV, et notamment pour lire des images, appliquer des filtres, extraire des descripteurs, ou encore utiliser l'algorithme des K-Moyennes ou la classification hiérarchique. C'est donc sur cette base que nous avons décidé de partir.
 
-    Dans un premier temps nous avons décidé d'implémenté un descripteur "moyenne de niveau de gris" car c'est un descripteur a une seule dimension et il est donc facile de vérifier les résultats de l'algorithmes K-Moyennes. Nous avons également créé des jeux de données plus simples disponibles dans data2, data3 et data4 afin de comparer plus simplement les descripteurs.
+    Dans un premier temps nous avons décidé d'implémenter un descripteur "moyenne de niveau de gris" car c'est un descripteur a une seule dimension et il est donc facile de vérifier les résultats de l'algorithmes K-Moyennes. Nous avons également créé des jeux de données plus simples disponibles dans data2, data3 et data4 afin de comparer plus simplement les descripteurs. Dans un deuxième temps nous avons implémenté les Moments de Hu, Sift et Surf.
 
-
-\section{Apprentissage}
-    TODO
 
 \section{Architecture}
-    Le code est entièrement écrit en C++ et utilise la bibliothèque OpenCV. Un Makefile à la racine permet de compiler les différents algorithmes de classifications.
+    Le code est entièrement écrit en C++ et utilise la bibliothèque OpenCV. Un Makefile à la racine permet de compiler les différents algorithmes de classifications et les programmes se trouvent dans le dossier bin/
 
     Le programme prend en entré un fichier .csv décrivant les images à utiliser et les classes auxquelles elles appartiennent. Le programme se sert d'une base d'images afin de déterminer les centres, soit par l'algorithme des K-Moyennes, soit par la classification hiérarchique (dendrogramme). Le programme classifie ensuite la totalité des images et affiche les résultats en mode texte, ainsi que l'indice de Rand et l'ACP sur deux dimensions.
 
     Le code du programme est peut fonctionner avec n'importe quel type de descripteurs et se trouve dans le fichier src/main.cpp. Les descripteurs implémentés se trouvent dans le fichier src/descriptors.cpp. Un descripteur est défini comme étant un ensemble de nombre floatants, typiquement 1 pour le descripteur "moyenne de niveau de gris" et 128 pour le descripteur "SURF".
 
-    La répartitions des images est également afficher lors de l'exécution du programme. Il est aussi possible d'exporter la position des centres dans fichier.
+    La répartition des images est également affichée lors de l'exécution du programme. Il est aussi possible d'exporter la position des centres dans fichier.
 
     Un certain nombre de données sont sauvegardés au format yml lors de l'exécution, tels que les descripteurs de SURF et de SIFT ainsi que le dicionnaire (Bag of Words) associé. Ils peuvent ainsi être réutilisé par OpenCV pour éviter de reclaculer l'ensemble des descripteurs, ce qui peut prendre plus d'une minute.
 
@@ -187,7 +184,7 @@ L'objectif de ce mini projet consiste à développer un système de classificati
 ==> Mettre ici les screens ACP
 
 
-\chapter{Synthèse}
+\chapter{Résultats}
 
 Tableau synthétique en latex
 
