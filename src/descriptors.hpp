@@ -8,6 +8,8 @@
 
 void meanDescriptor(const std::vector<std::string> &files, std::vector<std::vector<float>> &descriptors, int &featureCount);
 
+void gaborDescriptor(const std::vector<std::string> &files, std::vector<std::vector<float>> &descriptors, int &featureCount);
+
 void siftDescriptor(const std::vector<std::string> &files, std::vector<std::vector<float>> &descriptors, int &featureCount);
 
 void surfDescriptor(const std::vector<std::string> &files, std::vector<std::vector<float>> &descriptors, int &featureCount);

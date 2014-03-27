@@ -145,7 +145,7 @@ L'objectif de ce mini projet consiste à développer un système de classificati
 
 
 \section{Architecture}
-    Le code est entièrement écrit en C++ et utilise la bibliothèque OpenCV. Un Makefile à la racine permet de compiler les différents algorithmes de classifications et les programmes se trouvent dans le dossier bin/
+    Le code est entièrement écrit en C++ et utilise la bibliothèque OpenCV. Un Makefile à la racine permet de compiler les différents algorithmes de classifications et les programmes se trouvent dans le dossier bin.
 
     Le programme prend en entré un fichier .csv décrivant les images à utiliser et les classes auxquelles elles appartiennent. Le programme se sert d'une base d'images afin de déterminer les centres, soit par l'algorithme des K-Moyennes, soit par la classification hiérarchique (dendrogramme). Le programme classifie ensuite la totalité des images et affiche les résultats en mode texte, ainsi que l'indice de Rand et l'ACP sur deux dimensions.
 
@@ -155,15 +155,22 @@ L'objectif de ce mini projet consiste à développer un système de classificati
 
     Un certain nombre de données sont sauvegardés au format yml lors de l'exécution, tels que les descripteurs de SURF et de SIFT ainsi que le dicionnaire (Bag of Words) associé. Ils peuvent ainsi être réutilisé par OpenCV pour éviter de reclaculer l'ensemble des descripteurs, ce qui peut prendre plus d'une minute.
 
-    [PARLER DE NONFREE]
+    Les algorithmes SIFT et SURF sont actuellement brevetés et ne sont pas entièrement libres de droits. OpenCV inclue une implémentation de ces algorithmes, mais celle-ci est fournie dans le module \textit{nonfree} qui n'est pas présent sous ubuntu par défaut (mais qui reste disponible sur les autres distributions). Nous avons donc récupérer le code source de ces algorithmes sur le dépôt d'OpenCV et nous les compilons séparément dans notre projet.
 
+
+\section{Validation croisée}
+    Notre programme est découpé en trois partie. La première partie consiste à extraire les descripteurs des images, au moyen d'une fonction externe (implémentée dans descriptors.cpp).
+
+    Nous choisissons ensuite des images aléatoirement, par exemple 10 sur 50 que nous allons séparer en cinq classes à l'aide d'un dendrograme ou de kmeans. Les cinq centres obtenus sont sauvegardés.
+
+    Nous prenons ensuite les descripteurs de toutes les images restantes et nous les associons ou centre le plus proche afin de réapartir toutes les images dans les cinq classes. La qualité de la distribution est mesurée avec l'indice de Rand. Nous répétons cette opération plusieurs fois jusu'à obtenir les cinq centres qui donnent les meilleurs résultats.
+    
 
 \chapter{Descripteurs}
     Nous avons implémenté plusieurs descripteurs, certains très simple (et peu efficaces), et d'autres plus complexes mais aussi plus performants. Nous avons comparés ces descripteurs selon plusieurs critères, en comparant les résultats obtenus avec l'Algorithme des K-Moyennes et la classification hiérarchique, mais aussi leur résistances à diverses transformations ou encore leur performance.
 
     \section{Descripturs 1D}
-        [Moyenne en niveau de gris]
-        [variance]
+        Nous avons implémenté des descripteurs 1D très simples, principalement pour tester la validité de notre code et pour avoir un indice de référence. Comme nous nous y attendions, la classification est médiocre.
 
     \section{Moments de Hu}
 
@@ -174,19 +181,30 @@ L'objectif de ce mini projet consiste à développer un système de classificati
         On peut donc dire que les moments de Hu ne sont pas bien adaptés au problème car les images traitées sont complexes induisant une mauvaise détection de contours et les descripteurs générés par l'algorithme ne sont pas directement viables pour être utilisé avec Kmeans ou même un dendrogramme. Nous pensons que si l'apprentissage avait été supervisé et avec un jeu de données plus simple, l'utilisation d'un SVM comme classifieurs des descripteurs d'image générée par les moments de Hu aurait donné des résultats prometteurs.
 
     \section{SIFT / SURF}
-        [Décrire le principe de fonctionnement]
+        SIFT et SURF sont deux techniques qui permettent d'extraire des points clés (local features) d'une image. ces points clés de sont pas utilisables tel quel, et il peut y en avoir un grand nombre pour une seule image. 
 
-      SURF / SIFT :
-      - stockage dans des fichiers
-      - performance
-      - décrire le processus
+        Le principe consiste à se servir de ces points pour constituer un dictionnaire de mot visuels. On commence par choisir des images pour lesquelles on extrait des points clés (bag of words). A l'aide d'un algorithme de clustering comme kmeans, on va ensuite extraire les points les plus représentatif (centres) parmis tous les points obtenus afin de créer un dictionnaire. Comme cette procédure peut prendre du temps (1 à 2 minutes pour SIFT, 30 secondes pour SURF), on enregistre le dictionnaire dans un fichier au format yml. Si ce fichier existe, notre programme va directement charger le dictionnaire existant pour effectuer la classification.
 
-==> Mettre ici les screens ACP
+        Grâce au dictionnaire, on peut maintenant calculer pour chaque image un histogramme qui correspond à la distribution des mots du dictionnaire pour cette image (ensemble de nombre floatants entre 0 et 1). On peut aussi voir cet histogramme comme la contribution de chaque \textit{mots} du dictionnaire dans la description de l'image. Plus un \texit{mot} est apte à décrire l'image, plus la valeur qui lui est associé est élévée. L'histogramme est normalisé et peut donc être utilisé comme descripteur.
 
 
 \chapter{Résultats}
 
-Tableau synthétique en latex
+\begin{figure}[!h]
+      \centering
+      \begin{tabular}{ | l | c | l | }
+        \hline
+        Descripteurs & Pré-traitement & Rand \\
+        \hline
+          Moyenne & -      & 0.65\\
+          Gabor & -      & 0.67\\
+          SURF  &   blur + canny & 0.66\\
+          SIFT  & blur + canny & 0.68\\
+          SURF  &   -        & 0.72\\
+          SIFT  & -      & 0.78\\
+        \hline  
+      \end{tabular}
+\end{figure}
 
 
 \chapter{Conclusion}

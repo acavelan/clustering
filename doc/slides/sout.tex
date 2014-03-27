@@ -50,27 +50,37 @@
 \section{Choix logiciels}
 
 	\begin{frame}{Approche}
-		\begin{itemize}
-			\item En fonction du voisinage
-			\item Sans a priori sur le réseau global
-			\item Avec une restriction sur la taille des messages
-		\end{itemize}
+		\begin{block}{Bibliothèques et langages}
+			\begin{itemize}
+		        \item Matlab
+		        \item C++ - OpenCV
+		        \item Python - Scikit / Skimage
+		        \item Python - OpenCV
+	    	\end{itemize}
+    	\end{block}
 	\end{frame}
 
-	\begin{frame}{Apprentissage}
-		\begin{itemize}
-			\item En fonction du voisinage
-			\item Sans a priori sur le réseau global
-			\item Avec une restriction sur la taille des messages
-		\end{itemize}
+	\begin{frame}{Structure du projet}
+		\begin{block}{Architecture}
+			\begin{itemize}
+				\item Code C++ / OpenCV
+				\item Méthode d'apprentissage par validation croisée
+				\item Séparation des descripteurs et du code principal
+				\item Possibilité d'ajouter simplement des descripteurs
+			\end{itemize}
+		\end{block}
 	\end{frame}
 
-	\begin{frame}{Architecture}
-		\begin{itemize}
-			\item En fonction du voisinage
-			\item Sans a priori sur le réseau global
-			\item Avec une restriction sur la taille des messages
-		\end{itemize}
+	\begin{frame}{Apprentissage non-supervisé}
+		\begin{block}{Validation croisée}
+			\begin{itemize}
+				\item Tirage de plusieurs images aléatoirement
+				\item Extraction des descripteurs d'images
+				\item Classification (kmeans ou hiérarchique)
+				\item Association d'une classe à de nouvelles images
+				\item Calcul de l'index de Rand
+			\end{itemize}
+		\end{block}
 	\end{frame}
 
 % === DESCRIPTEURS =====================================================
@@ -78,46 +88,77 @@
 \section{Descripteurs}
 
 	\begin{frame}{Descripteurs 1D}
-		\begin{itemize}
-			\item En fonction du voisinage
-			\item Sans a priori sur le réseau global
-			\item Avec une restriction sur la taille des messages
-		\end{itemize}
+		\begin{block}{Descripteurs simples}
+			\begin{itemize}
+				\item Moyenne
+				\item Variance
+				\item Taille de l'image
+			\end{itemize}
+		\end{block}
+		\begin{block}{Résultats}
+			Résultats médiocres (Rand : 0.5 - 0.65), peu résistants aux variations de lumière et indiférrents aux formes.
+		\end{block}
 	\end{frame}
 
 	\begin{frame}{Moments de Hu}
-		\begin{itemize}
-			\item En fonction du voisinage
-			\item Sans a priori sur le réseau global
-			\item Avec une restriction sur la taille des messages
-		\end{itemize}
+		\begin{block}{Avantages}
+			\begin{itemize}
+				\item Descripteur de formes
+				\item Détection de plusieurs objets
+				\item Suppose une bonne détection de contours
+			\end{itemize}
+		\end{block}
+		\begin{block}{Inconvéniants}
+			\begin{itemize}
+				\item Non adapté à des images complexes
+				\item Génère de nombreux points extrêmes
+				\item La densité des données est hétérogène
+			\end{itemize}
+		\end{block}
 	\end{frame}
 
-	\begin{frame}{SIFT / SIRF}
-		\begin{itemize}
-			\item En fonction du voisinage
-			\item Sans a priori sur le réseau global
-			\item Avec une restriction sur la taille des messages
-		\end{itemize}
+	\begin{frame}{SIFT / SURF}
+		\begin{block}{Méthode}
+			\begin{enumerate}
+				\item Extraction de points clés sur plusieurs images
+				\item Création d'un dictionnaire de mots visuels (kmeans)
+				\item Extraction de descripteurs en utilisant le dictionnaire
+				\item Cela revient à comparer des histogrammes de distribution
+			\end{enumerate}
+		\end{block}
+		\begin{block}{Résultats}
+			Enregistrement du dictionnaire et des descripteurs dans des fichiers.\\
+			Résultats assez bon (Rand : 0.7 - 0.8). Les résultats varies en fonction de la taille du dictionnaire.
+		\end{block}
 	\end{frame}
 
 % === SYNTHESE =====================================================
-\section{Synthèse}
+
+\section{Résultats}
 
 	\begin{frame}{Tableaux}
-		\begin{itemize}
-			\item En fonction du voisinage
-			\item Sans a priori sur le réseau global
-			\item Avec une restriction sur la taille des messages
-		\end{itemize}
+		\begin{figure}[!h]
+			\centering
+			\begin{tabular}{ | l | c | l | }
+				\hline
+				Descripteurs & Pré-traitement & Rand \\
+				\hline
+					Moyenne &	-			 & 0.65\\
+					Gabor	&	-			 & 0.67\\
+					SURF 	& 	blur + canny & 0.66\\
+					SIFT 	&	blur + canny & 0.68\\
+					SURF 	& 	- 			 & 0.72\\
+					SIFT 	&	-			 & 0.78\\
+				\hline  
+			\end{tabular}
+		\end{figure}
 	\end{frame}
 
-	\begin{frame}{Conclusion}
-		\begin{itemize}
-			\item En fonction du voisinage
-			\item Sans a priori sur le réseau global
-			\item Avec une restriction sur la taille des messages
-		\end{itemize}
-	\end{frame}
+	\section{Questions}
+	\begin{frame}{Questions}
+	    \begin{beamercolorbox}[center,shadow=true,rounded=true,]{note} 
+	        \huge{Questions?}
+	    \end{beamercolorbox} 
+	\end{frame} 
 
 \end{document}

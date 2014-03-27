@@ -5,6 +5,7 @@
 #include <opencv2/nonfree/features2d.hpp>
 
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 using namespace cv;
@@ -22,6 +23,30 @@ void meanDescriptor(const vector<string> &files, vector<vector<float>> &descript
         Mat srcGray = imread(file, CV_LOAD_IMAGE_GRAYSCALE);
 
         //blur(srcGray, srcGray, Size(3, 3));
+
+        float m = mean(srcGray)[0];
+
+        vector<float> features;
+        features.push_back(m);
+
+        descriptors.push_back(features);
+    }
+
+    featureCount = 1;
+}
+
+void gaborDescriptor(const vector<string> &files, vector<vector<float>> &descriptors, int &featureCount)
+{
+	for(auto& file : files)
+    {
+        Mat srcGray = imread(file, CV_LOAD_IMAGE_GRAYSCALE);
+
+        blur(srcGray, srcGray, Size(3, 3));
+        Canny(srcGray, srcGray, 60, 60*3, 3);
+
+        Mat kernel = cv::getGaborKernel(cv::Size(9,9), 3.0, -M_PI/4, M_PI, 10.0, M_PI*0.5);
+
+		cv::filter2D(srcGray, srcGray, CV_32F, kernel);
 
         float m = mean(srcGray)[0];
 

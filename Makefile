@@ -6,7 +6,7 @@ SRC_NONFREE=$(wildcard $(NONFREE)/*.cpp)
 OBJ_NONFREE=$(SRC_NONFREE:.cpp=.o)
 PROG_OBJ=src/descriptors.o src/utils.o $(OBJ_NONFREE)
 
-all: mean sift surf huMoments
+all: mean sift surf huMoments gabor
 
 src/%.o: src/%.cpp
 	$(CXX) -c $^ -o $@ $(CXXFLAGS)
@@ -25,6 +25,9 @@ surf: $(PROG_OBJ) bin
 
 huMoments: $(PROG_OBJ) bin
 	$(CXX) -o bin/$@ src/main.cpp $(PROG_OBJ) $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=huMomentsDescriptor
+
+gabor: $(PROG_OBJ) bin
+	$(CXX) -o bin/$@ src/main.cpp $(PROG_OBJ) $(CXXFLAGS) $(LDFLAGS) -DCREATE_DESCRIPTORS=gaborDescriptor
 
 bin:
 	mkdir -p bin
