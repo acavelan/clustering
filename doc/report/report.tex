@@ -180,7 +180,7 @@ L'objectif de ce mini-projet consiste à développer un système de classificati
 
         On peut donc dire que les moments de Hu ne sont pas bien adaptés au problème car les images traitées sont complexes induisant une mauvaise détection de contours et les descripteurs générés par l'algorithme ne sont pas directement viables pour être utilisé avec Kmeans ou même un dendrogramme. Nous pensons que si l'apprentissage avait été supervisé et avec un jeu de données plus simple, l'utilisation d'un SVM comme classifieur des descripteurs d'images générés par les moments de Hu aurait donné des résultats prometteurs.
 
-    \section{SIFT / SURF}
+    \section{SIFT versus SURF}
         SIFT et SURF sont deux techniques qui permettent d'extraire des points-clés (local features) d'une image. Ces points-clés ne sont pas utilisables tel quel, et il peut y en avoir un grand nombre pour une seule image. 
 
         Le principe consiste à se servir de ces points pour constituer un dictionnaire de mots visuels. On commence par choisir des images pour lesquelles on extrait des points-clés (bag of words). À l'aide d'un algorithme de clustering comme kmeans, on va ensuite extraire les points les plus représentatifS (centres) parmi tous les points obtenus afin de créer un dictionnaire. Comme cette procédure peut prendre du temps (1 à 2 minutes pour SIFT, 30 secondes pour SURF), on enregistre le dictionnaire dans un fichier au format yml. Si ce fichier existe, notre programme va directement charger le dictionnaire existant pour effectuer la classification.
